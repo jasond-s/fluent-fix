@@ -119,4 +119,78 @@ describe('Fixture builder', function () {
 			expect(fluentTestClassWithDefaults.stuff.thing).toEqual(jasmine.any(String));
 		});
 	});
+
+	describe('with a builder instance', function () {
+
+		it('will keep sensible defaults from load', function () {
+			var builder = fixture
+				.builder()
+				.withSomething(9002);
+
+			var fluentTestClassWithDefaults1 = builder.build();
+			var fluentTestClassWithDefaults2 = builder.build();
+
+			expect(fluentTestClassWithDefaults1.something).toEqual(9002);
+			expect(fluentTestClassWithDefaults1.thing).toEqual(jasmine.any(String));
+
+			expect(fluentTestClassWithDefaults2.something).toEqual(9002);
+			expect(fluentTestClassWithDefaults2.thing).toEqual(jasmine.any(String));
+		});
+	});
+
+	describe('with a complex nested object', function () {
+
+		it('will keep sensible defaults from load', function () {
+			var complexFixture = FluentFix.fixture({ 
+				something: 5,
+				thing: {
+					something: 'hello',
+					thing: {
+						something: 'world',
+						thing: {
+							something: 5
+						}
+					}
+				}
+			});
+
+			var complex = complexFixture();
+
+			expect(complex.something).toEqual(jasmine.any(Number));
+			expect(complex.thing.something).toEqual(jasmine.any(String));
+			expect(complex.thing.thing.something).toEqual(jasmine.any(String));
+			expect(complex.thing.thing.thing.something).toEqual(jasmine.any(Number));
+		});
+	});
+
+	describe('with a function return in an object', function () {
+
+		var functionFixture = null;
+
+		beforeEach(function () {
+			functionFixture = FluentFix.fixture({ 
+				something: 5,
+				thing: function () {
+					return 5;
+				}
+			});
+		});
+
+		it('will create a real object', function () {
+			expect(functionFixture()).toBeTruthy();
+		});		
+
+		it('will keep sensible defaults from load', function () {
+			var testClass = functionFixture
+				.builder()
+				.withThing(function () {
+					return function () {
+						return 9001;
+					}
+				})
+				.build();
+
+			expect(testClass.thing()).toEqual(9001);
+		});
+	});
 });

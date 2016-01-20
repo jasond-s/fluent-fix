@@ -247,7 +247,6 @@
 		return function () {
 
 			var fixCopy = clone(fix),
-			    testObject = builderFunc(),
 			    transforms = {};
 
 			var completeBuilder = objectMap(fixCopy, function (prop, name) {
@@ -262,11 +261,11 @@
 			});
 
 			completeBuilder.build = function () {
-				return applyTransforms(transforms, testObject);
+				return applyTransforms(transforms, builderFunc());
 			};
 
 			completeBuilder.persist = function () {
-				persistance(testObject);
+				persistance(completeBuilder.build());
 
 				return completeBuilder;
 			};
