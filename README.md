@@ -1,3 +1,6 @@
+
+[ ![fluent-fix](https://travis-ci.org/jasond-s/fluent-fix.svg "Travis Build") ](https://travis-ci.org/jasond-s/fluent-fix "fluent-fix")
+
 # fluent-fix
 
 A javascript library for creating test fixtures fluently for use in testing. 
