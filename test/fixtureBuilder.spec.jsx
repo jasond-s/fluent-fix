@@ -9,7 +9,7 @@ describe('Fixture builder', function () {
 		fixture = FluentFix.fixture({ 
 			something: 5,
 			thing: "Hello World",
-			stuff: [ "Good Bye" ],
+			stuff: [ "Good Bye", 5 ],
 			noStuff: [ ]
 		});
 
@@ -49,7 +49,7 @@ describe('Fixture builder', function () {
 		});
 
 		it('will set the default value for an array', function () {
-			expect(testClass.stuff).toEqual([ jasmine.any(String) ]);
+			expect(testClass.stuff).toEqual([ jasmine.any(String), jasmine.any(Number) ]);
 		});
 
 		it('will fluently create a new fixture for an object', function () {
@@ -81,7 +81,7 @@ describe('Fixture builder', function () {
 			expect(fluentTestClassWithDefaults.something).toBe(9002);
 			expect(fluentTestClassWithDefaults.thing).toEqual(jasmine.any(String));
 			expect(testClass.noStuff).toEqual([]);
-			expect(testClass.stuff).toEqual([ jasmine.any(String) ]);
+			expect(testClass.stuff).toEqual([ jasmine.any(String), jasmine.any(Number) ]);
 		});
 	});
 
@@ -97,7 +97,7 @@ describe('Fixture builder', function () {
 
 			expect(complexTestClass.stuff.thing).toEqual(jasmine.any(String));
 			expect(complexTestClass.stuff.something).toEqual(jasmine.any(Number));
-			expect(complexTestClass.stuff.stuff).toEqual([ jasmine.any(String) ]);
+			expect(complexTestClass.stuff.stuff).toEqual([ jasmine.any(String), jasmine.any(Number) ]);
 		});
 
 		it('will keep sensible defaults from load', function () {

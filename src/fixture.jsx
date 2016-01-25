@@ -1,200 +1,129 @@
 
 (function (fluentFix, globals) {
 
-	let crypto = window.crypto;
+	if (!fluentFix.Generator) throw new Error('Default generators not loaded.');
 
-	/* Utilities
-	************************************************************/	
+    let cryptoNumber = globals.randomNumberGenerator;
 
-  function rngCrypto() {
-      return crypto.getRandomValues(new Uint8Array(1))[0];
-  }
+    /* Utilities
+    ************************************************************/
 
-  function rngTime(i) {
-      return Math.random() * 0x100000000 >>> ((i & 0x03) << 3) & 0xff;
-  }
+    function isArray(arr) {
+        return Object.prototype.toString.call(arr) === '[object Array]';
+    }
 
-  let cryptoNumber = crypto && crypto.getRandomValues && Uint8Array ? rngCrypto : rngTime;
+    function isDate(date) {
+        return Object.prototype.toString.call(date) === '[object Date]'
+    }
 
-	function cryptoString (length) {
-    let text = [],
-    		possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
-    		len = length || 15;
+    function capitalizeFirstLetter(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
 
-    for (let i = 0; i < len; i++)
-      text.push(possible.charAt(Math.floor(cryptoNumber() % possible.length)));
+    function objectIterate (obj, fn) {
+        let newobj = {};
 
-    return text.join('');
-	}
+        for (let prop in obj)
+            if (obj.hasOwnProperty(prop)) 
+                fn(prop, obj, newobj);
 
-	function isArray(arr) {
-	  return Object.prototype.toString.call(arr) === '[object Array]';
-	}
+        return newobj;
+    }
 
-	function isDate(date) {
-		return Object.prototype.toString.call(date) === '[object Date]'
-	}
+    function objectMap (obj, fn, namer) {
+        return objectIterate(obj, function (prop, oldObj, newObj) {
+            newObj[namer ? namer(prop) : prop] = fn(oldObj[prop], prop);
+        });
+    }
 
-	function capitalizeFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-	}
+    function clone (obj) {
+        let copy;
 
-	function objectIterate (obj, fn) {
-		let newobj = {};
+        if (obj == null || typeof obj !== 'object')
+            return obj;
 
-		for (let prop in obj)
-			if (obj.hasOwnProperty(prop)) 
-				fn(prop, obj, newobj);
+        if (isDate(obj))
+        	return new Date(obj.getTime());
 
-		return newobj;
-	}
+        if (isArray(obj))
+        	return obj.map(function (elem) { return clone(obj[i]) });
 
-	function objectMap (obj, fn, namer) {
-		return objectIterate(obj, function (prop, oldObj, newObj) {
-			newObj[namer ? namer(prop) : prop] = fn(oldObj[prop], prop);
-		});
-	}
-
-	function clone (obj) {
-		let copy;
-
-    if (obj == null || typeof obj !== 'object')
-    	return obj;
-
-    if (isDate(obj))
-      return new Date(obj.getTime());
-
-    if (isArray(obj))
-      return obj.map(function (elem) { return clone(obj[i]); });
-
-		return objectIterate(obj, function (prop, oldObj, newObj) {
-			newObj[prop] = clone(obj[prop]);
-		});
-	}
-
-	/* Type coersion and generators
-	************************************************************/
-
-	function array (arr) {
-
-		if (arr.length < 1)
-			return function () { return [] };
-
-		let typeCache = arr.map(function (elem) {
-			return coerse(elem);
-		});
-
-		return function () {
-
-			return typeCache.map(function (elem) {
-				return elem();
-			});
-		}
-	}
-
-	function number (number) {
-
-		return function () {
-			return cryptoNumber();
-		}
-	}
-
-	function string (string) {
-
-		let length = string.length;
-
-		return function () {
-			return cryptoString(length)
-		}
-	}
-
-	function coerse(something) {
-
-		if (typeof something === 'string')
-			return string(something);
-
-		if (typeof something === 'number')
-			return number(something);
-
-		if (isDate(something))
-			return new Date(something);
-
-		if (isArray(something))
-			return array(something);
-
-		return fixture(something);
-	}
+        return objectIterate(obj, function (prop, oldObj, newObj) {
+            newObj[prop] = clone(obj[prop]);
+        });
+    }
 
 
-	/* Build the fixtures
-	************************************************************/
-	function applyTransforms (transforms, testObject) {
+    /* Build the fixtures
+    ************************************************************/
+    function applyTransforms (transforms, testObject) {
 
-		return objectMap(testObject, function (prop, name) {
+        return objectMap(testObject, function (prop, name) {
 
-			let transform = transforms[name];
+            let transform = transforms[name];
 
-			if (transform)
-				return typeof transform === 'function' ? transform() : transform
-			else
-				return testObject[name];			
-		});
-	}
+            if (transform)
+                return typeof transform === 'function' ? transform() : transform
+            else
+                return testObject[name];            
+        });
+    }
 
-	function builder (builderFunc, fix) {
+    function builder (builderFunc, fix) {
 
-		return function () {
+        return function () {
 
-			let fixCopy = clone(fix),
-				transforms = {};
+            let fixCopy = clone(fix),
+                transforms = {};
 
-			let completeBuilder = objectMap(fixCopy, 
-					function (prop, name) { 
-						return function (fn) {
+            let completeBuilder = objectMap(fixCopy, 
+                    function (prop, name) { 
+                        return function (fn) {
 
-							transforms[name] = fn;
+                            transforms[name] = fn;
 
-							return completeBuilder;
-						};
-					}, 
-					function (name) {
-						return 'with' + capitalizeFirstLetter(name);
-					});
+                            return completeBuilder;
+                        };
+                    }, 
+                    function (name) {
+                        return 'with' + capitalizeFirstLetter(name);
+                    });
 
-			completeBuilder.build = function () {
-				return applyTransforms(transforms, builderFunc());
-			}
+            completeBuilder.build = function () {
+                return applyTransforms(transforms, builderFunc());
+            }
 
-			completeBuilder.persist = function () {
-				persistance(completeBuilder.build());
+            completeBuilder.persist = function () {
+                persistance(completeBuilder.build());
 
-				return completeBuilder;
-			}
+                return completeBuilder;
+            }
 
-			return completeBuilder;
-		}
-	}
+            return completeBuilder;
+        }
+    }
 
-	function build (fix) {
+    function build (fix) {
+        let builderFunc = function () {
+            return objectMap(fix, function (prop) { return prop() });
+        }
 
-		let builderFunc = function () {
-			return objectMap(fix, function (prop) { return prop(); });
-		}
+        builderFunc.builder = builder(builderFunc, fix);
 
-		builderFunc.builder = builder(builderFunc, fix);
+        return builderFunc
+    }
 
-		return builderFunc
-	}
+    function fixture(obj) {        
+        return build(objectMap(obj, function (prop) { 
+            return fluentFix.Generator.coerse(prop) || fixture(prop)
+        }));
+    }
 
-	function fixture(obj) {		
-		return build(objectMap(obj, function (prop) { return coerse(prop); }));
-	}
+    fluentFix.fixture = fixture;
 
-	fluentFix.fixture = fixture;
+    /* Assign to globals 
+    ************************************************************/
 
-	/* Assign to globals 
-	************************************************************/
-
-	globals.FluentFix = fluentFix;
+    globals.FluentFix = fluentFix;
 
 } (window.FluentFix || {}, window));

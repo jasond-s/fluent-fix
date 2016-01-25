@@ -2,13 +2,19 @@ module.exports = config:
 	modules: wrapper: false
 	minify: yes
 	plugins: 
-		babel: pattern: /\.(es6|jsx)$/
-		uglify: ignored: /angular-fluent-fixture.js/
+		babel: pattern: /\.(es6|jsx|spec.jsx)$/
+		uglify: ignored: /fluent-fix.js|fluent-fix.spec.js/
 	paths: 
 		public: 'dist'
-		watched: [ 'src' ]
+		watched: [ 'src', 'test' ]
 	files:
 		javascripts: 
 			joinTo: 
-				'angular-fluent-fixture.js': /src/
-				'angular-fluent-fixture.min.js': /src/
+				'fluent-fix.js': /src/
+				'fluent-fix.min.js': /src/
+				'fluent-fix.spec.js': /test/
+			order:
+		      before: [ 
+		      	'src/uuid-crypto.jsx',
+		      	'src/generator.jsx'
+		      ]
