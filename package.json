@@ -1,6 +1,6 @@
 {
   "name": "fluent-fix",
-  "version": "0.0.1-alpha.9",
+  "version": "0.0.1-alpha.10",
   "description": "A simple fluent builder for test fixtures.",
   "scripts": {
     "test": "karma start karma.conf.js",
