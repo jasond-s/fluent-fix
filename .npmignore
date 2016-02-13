@@ -1,5 +1,6 @@
 dist/fluent-fix.spec.js
 test
+src
 .gitignore
 .travis.yml
 brunch-config.coffee

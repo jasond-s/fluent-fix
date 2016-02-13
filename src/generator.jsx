@@ -4,29 +4,6 @@
 	let generator = fluentFix.Generator || {};
 
 
-    /* Utilities
-    ************************************************************/
-
-    function cryptoString (length) {
-        let text = [],
-        	possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
-        	len = length || 15;
-
-        for (let i = 0; i < len; i++)
-			text.push(possible.charAt(Math.floor(cryptoNumber() % possible.length)));
-
-        return text.join('');
-    }
-
-    function isArray(arr) {
-        return Object.prototype.toString.call(arr) === '[object Array]';
-    }
-
-    function isDate(date) {
-        return Object.prototype.toString.call(date) === '[object Date]'
-    }
-
-
     /* Type coersion and default generators
     ************************************************************/
 
@@ -35,6 +12,8 @@
             if (generator.For.hasOwnProperty(prop))
             	if (generator.For[prop].match(something))
             		return generator.For[prop];
+
+        return generator.Object;
     }
 
     function coerse(something) {
@@ -64,6 +43,29 @@
 	}
 
 	generator.Abstract = GeneratorBase;
+
+	class ObjectGenerator extends GeneratorBase {
+
+		constructor (obj) { 
+			super();
+
+			this.objectCache = fluentFix.objectMap(obj, function (prop) { 
+	            return fluentFix.Generator.coerse(prop);
+	        })
+		}
+
+		generate() {
+			return fluentFix.objectMap(this.objectCache, function (prop) { 
+                return prop() 
+            });
+		}
+
+		static match(something) {
+			return fluentFix.isObject(something);
+		}
+	}
+
+	generator.Object = ObjectGenerator;
 
 
     /* Custom generators
@@ -126,7 +128,7 @@
 		}
 
 		generate() {
-			return cryptoString(typeof this.defaultString === 'undefined' 
+			return fluentFix.cryptoString(typeof this.defaultString === 'undefined' 
 				? cryptoNumber() 
 				: this.defaultString.length);
 		}
@@ -151,7 +153,7 @@
 		}
 
 		static match(something) {
-			return isDate(something);
+			return fluentFix.isDate(something);
 		}
 	}
 
@@ -177,11 +179,11 @@
 		}
 
 		static match(something) {
-			return isArray(something);
+			return fluentFix.isArray(something);
 		}
 	}
 
-	genFor.Array = ArrayGenerator;
+	genFor.Array = ArrayGenerator;	
 
 
     /* Assign to Generator.For
