@@ -193,4 +193,34 @@ describe('Fixture builder', function () {
 			expect(testClass.thing()).toEqual(9001);
 		});
 	});
+
+	describe('with an array of complex objects', function () {
+
+		var functionFixture = null;
+
+		beforeEach(function () {
+			functionFixture = FluentFix.fixture({ 
+				something: [
+					{ thing: 1 },
+					2,
+					'three'
+				]
+			});
+		});
+
+		it('will create a real object', function () {
+			expect(functionFixture()).toBeTruthy();
+		});		
+
+		it('will keep the types for all the array items', function () {
+			var testClass = functionFixture();
+
+			expect(testClass.something).toEqual(jasmine.any(Array));
+
+			expect(testClass.something[0]).toEqual(jasmine.any(Object));
+			expect(testClass.something[0].thing).toEqual(jasmine.any(Number));
+			expect(testClass.something[1]).toEqual(jasmine.any(Number));
+			expect(testClass.something[2]).toEqual(jasmine.any(String));
+		});
+	});
 });

@@ -16,5 +16,6 @@ module.exports = config:
 			order:
 		      before: [ 
 		      	'src/uuid-crypto.jsx',
+		      	'src/utilities.jsx',
 		      	'src/generator.jsx'
 		      ]
