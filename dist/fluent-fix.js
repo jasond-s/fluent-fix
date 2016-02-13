@@ -192,6 +192,93 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 'use strict';
 
+(function (fluentFix, globals) {
+
+    var cryptoNumber = globals.randomNumberGenerator;
+
+    /* Utilities
+    ************************************************************/
+
+    function cryptoString(length) {
+        var text = [],
+            possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+            len = length || 15;
+
+        for (var i = 0; i < len; i++) {
+            text.push(possible.charAt(Math.floor(cryptoNumber() % possible.length)));
+        }return text.join('');
+    }
+
+    fluentFix.cryptoString = cryptoString;
+
+    function isArray(arr) {
+        return Object.prototype.toString.call(arr) === '[object Array]';
+    }
+
+    fluentFix.isArray = isArray;
+
+    function isDate(date) {
+        return Object.prototype.toString.call(date) === '[object Date]';
+    }
+
+    fluentFix.isDate = isDate;
+
+    function isObject(obj) {
+        return Object.prototype.toString.call(obj) === '[object Object]';
+    }
+
+    fluentFix.isObject = isObject;
+
+    function isFunction(fn) {
+        return Object.prototype.toString.call(fn) === '[object Function]';
+    }
+
+    fluentFix.isFunction = isFunction;
+
+    function objectIterate(obj, fn) {
+        var newobj = {};
+
+        for (var prop in obj) {
+            if (obj.hasOwnProperty(prop)) fn(prop, obj, newobj);
+        }return newobj;
+    }
+
+    fluentFix.objectIterate = objectIterate;
+
+    function objectMap(obj, fn, namer) {
+        return objectIterate(obj, function (prop, oldObj, newObj) {
+            newObj[namer ? namer(prop) : prop] = fn(oldObj[prop], prop);
+        });
+    }
+
+    fluentFix.objectMap = objectMap;
+
+    function clone(obj) {
+        var copy = undefined;
+
+        if (obj == null || typeof obj !== 'object') return obj;
+
+        if (isDate(obj)) return new Date(obj.getTime());
+
+        if (isArray(obj)) return obj.map(function (elem) {
+            return clone(elem);
+        });
+
+        return objectIterate(obj, function (prop, oldObj, newObj) {
+            newObj[prop] = clone(obj[prop]);
+        });
+    }
+
+    fluentFix.clone = clone;
+
+    /* Assign to globals 
+    ************************************************************/
+
+    globals.FluentFix = fluentFix;
+})(window.FluentFix || {}, window);
+
+'use strict';
+
 var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -205,34 +292,13 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 	var cryptoNumber = globals.randomNumberGenerator;
 	var generator = fluentFix.Generator || {};
 
-	/* Utilities
- ************************************************************/
-
-	function cryptoString(length) {
-		var text = [],
-		    possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
-		    len = length || 15;
-
-		for (var i = 0; i < len; i++) {
-			text.push(possible.charAt(Math.floor(cryptoNumber() % possible.length)));
-		}return text.join('');
-	}
-
-	function isArray(arr) {
-		return Object.prototype.toString.call(arr) === '[object Array]';
-	}
-
-	function isDate(date) {
-		return Object.prototype.toString.call(date) === '[object Date]';
-	}
-
 	/* Type coersion and default generators
  ************************************************************/
 
 	function findGen(something) {
 		for (var prop in generator.For) {
 			if (generator.For.hasOwnProperty(prop)) if (generator.For[prop].match(something)) return generator.For[prop];
-		}
+		}return generator.Object;
 	}
 
 	function coerse(something) {
@@ -274,6 +340,38 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 	generator.Abstract = GeneratorBase;
 
+	var ObjectGenerator = (function (_GeneratorBase) {
+		_inherits(ObjectGenerator, _GeneratorBase);
+
+		function ObjectGenerator(obj) {
+			_classCallCheck(this, ObjectGenerator);
+
+			_get(Object.getPrototypeOf(ObjectGenerator.prototype), 'constructor', this).call(this);
+
+			this.objectCache = fluentFix.objectMap(obj, function (prop) {
+				return fluentFix.Generator.coerse(prop);
+			});
+		}
+
+		_createClass(ObjectGenerator, [{
+			key: 'generate',
+			value: function generate() {
+				return fluentFix.objectMap(this.objectCache, function (prop) {
+					return prop();
+				});
+			}
+		}], [{
+			key: 'match',
+			value: function match(something) {
+				return fluentFix.isObject(something);
+			}
+		}]);
+
+		return ObjectGenerator;
+	})(GeneratorBase);
+
+	generator.Object = ObjectGenerator;
+
 	/* Custom generators
  ************************************************************/
 
@@ -302,8 +400,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 	/* Default generators
  ************************************************************/
 
-	var NumberGenerator = (function (_GeneratorBase) {
-		_inherits(NumberGenerator, _GeneratorBase);
+	var NumberGenerator = (function (_GeneratorBase2) {
+		_inherits(NumberGenerator, _GeneratorBase2);
 
 		function NumberGenerator(number) {
 			_classCallCheck(this, NumberGenerator);
@@ -330,8 +428,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 	genFor.Number = NumberGenerator;
 
-	var StringGenerator = (function (_GeneratorBase2) {
-		_inherits(StringGenerator, _GeneratorBase2);
+	var StringGenerator = (function (_GeneratorBase3) {
+		_inherits(StringGenerator, _GeneratorBase3);
 
 		function StringGenerator(string) {
 			_classCallCheck(this, StringGenerator);
@@ -344,7 +442,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 		_createClass(StringGenerator, [{
 			key: 'generate',
 			value: function generate() {
-				return cryptoString(typeof this.defaultString === 'undefined' ? cryptoNumber() : this.defaultString.length);
+				return fluentFix.cryptoString(typeof this.defaultString === 'undefined' ? cryptoNumber() : this.defaultString.length);
 			}
 		}], [{
 			key: 'match',
@@ -358,8 +456,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 	genFor.String = StringGenerator;
 
-	var DateGenerator = (function (_GeneratorBase3) {
-		_inherits(DateGenerator, _GeneratorBase3);
+	var DateGenerator = (function (_GeneratorBase4) {
+		_inherits(DateGenerator, _GeneratorBase4);
 
 		function DateGenerator(date) {
 			_classCallCheck(this, DateGenerator);
@@ -377,7 +475,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 		}], [{
 			key: 'match',
 			value: function match(something) {
-				return isDate(something);
+				return fluentFix.isDate(something);
 			}
 		}]);
 
@@ -386,8 +484,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 	genFor.Date = DateGenerator;
 
-	var ArrayGenerator = (function (_GeneratorBase4) {
-		_inherits(ArrayGenerator, _GeneratorBase4);
+	var ArrayGenerator = (function (_GeneratorBase5) {
+		_inherits(ArrayGenerator, _GeneratorBase5);
 
 		function ArrayGenerator(arr) {
 			_classCallCheck(this, ArrayGenerator);
@@ -409,7 +507,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 		}], [{
 			key: 'match',
 			value: function match(something) {
-				return isArray(something);
+				return fluentFix.isArray(something);
 			}
 		}]);
 
@@ -440,62 +538,25 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
     if (!fluentFix.Generator) throw new Error('Default generators not loaded.');
 
-    var cryptoNumber = globals.randomNumberGenerator;
+    var generators = fluentFix.Generator;
 
     /* Utilities
     ************************************************************/
-
-    function isArray(arr) {
-        return Object.prototype.toString.call(arr) === '[object Array]';
-    }
-
-    function isDate(date) {
-        return Object.prototype.toString.call(date) === '[object Date]';
-    }
 
     function capitalizeFirstLetter(string) {
         return string.charAt(0).toUpperCase() + string.slice(1);
     }
 
-    function objectIterate(obj, fn) {
-        var newobj = {};
-
-        for (var prop in obj) {
-            if (obj.hasOwnProperty(prop)) fn(prop, obj, newobj);
-        }return newobj;
-    }
-
-    function objectMap(obj, fn, namer) {
-        return objectIterate(obj, function (prop, oldObj, newObj) {
-            newObj[namer ? namer(prop) : prop] = fn(oldObj[prop], prop);
-        });
-    }
-
-    function clone(obj) {
-        var copy = undefined;
-
-        if (obj == null || typeof obj !== 'object') return obj;
-
-        if (isDate(obj)) return new Date(obj.getTime());
-
-        if (isArray(obj)) return obj.map(function (elem) {
-            return clone(obj[i]);
-        });
-
-        return objectIterate(obj, function (prop, oldObj, newObj) {
-            newObj[prop] = clone(obj[prop]);
-        });
-    }
-
     /* Build the fixtures
     ************************************************************/
+
     function applyTransforms(transforms, testObject) {
 
-        return objectMap(testObject, function (prop, name) {
+        return fluentFix.objectMap(testObject, function (prop, name) {
 
             var transform = transforms[name];
 
-            if (transform) return typeof transform === 'function' ? transform() : transform;else return testObject[name];
+            if (transform) return fluentFix.isFunction(transform) ? transform() : transform;else return testObject[name];
         });
     }
 
@@ -503,10 +564,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
         return function () {
 
-            var fixCopy = clone(fix),
+            var fixCopy = fluentFix.clone(fix.generate()),
                 transforms = {};
 
-            var completeBuilder = objectMap(fixCopy, function (prop, name) {
+            var completeBuilder = fluentFix.objectMap(fixCopy, function (prop, name) {
                 return function (fn) {
 
                     transforms[name] = fn;
@@ -533,9 +594,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
     function build(fix) {
         var builderFunc = function builderFunc() {
-            return objectMap(fix, function (prop) {
-                return prop();
-            });
+            return fix.generate();
         };
 
         builderFunc.builder = builder(builderFunc, fix);
@@ -544,9 +603,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     }
 
     function fixture(obj) {
-        return build(objectMap(obj, function (prop) {
-            return fluentFix.Generator.coerse(prop) || fixture(prop);
-        }));
+        return build(new generators.Object(obj));
     }
 
     fluentFix.fixture = fixture;

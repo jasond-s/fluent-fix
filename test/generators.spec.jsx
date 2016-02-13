@@ -18,6 +18,44 @@ describe('Generators for fixture values', function () {
 		});
 	});
 
+	describe('object generator', function () {
+
+		describe('simple object', function () {
+
+			beforeEach(function () {
+				fixture = new FluentFix.Generator.Object({
+					something: 5
+				});
+
+				testClass = fixture.generate();
+			});
+
+			it('should return a new object when generating', function () {
+				expect(testClass.something).toEqual(jasmine.any(Number));
+			});
+		});
+
+		describe('complex object', function () {
+
+			beforeEach(function () {
+				fixture = new FluentFix.Generator.Object({
+					something: 5,
+					other: {
+						thing: 'TEST_01'
+					}
+				});
+
+				testClass = fixture.generate();
+			});
+
+			it('should return a new object when generating', function () {
+				expect(testClass.something).toEqual(jasmine.any(Number));
+				expect(testClass.other).toEqual(jasmine.any(Object));
+				expect(testClass.other.thing).toEqual(jasmine.any(String));
+			});
+		});
+	});
+
 	describe('custom generators', function () {
 
 		var testValue = {
