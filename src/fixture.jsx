@@ -1,5 +1,6 @@
+(function (globals) {
 
-(function (fluentFix, globals) {
+    let fluentFix = globals.FluentFix || {};
 
 	if (!fluentFix.Generator) throw new Error('Default generators not loaded.');
 
@@ -84,6 +85,7 @@
     /* Assign to globals 
     ************************************************************/
 
-    globals.FluentFix = fluentFix;
+    globals.FluentFix = (globals.module || {}).exports = fluentFix;
 
-} (window.FluentFix || {}, window));
+}(window || global))
+var window, global;

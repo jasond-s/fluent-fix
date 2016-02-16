@@ -1,4 +1,6 @@
-(function (fluentFix, globals) {
+(function (globals) {
+
+    let fluentFix = globals.FluentFix || {};
 
     let cryptoNumber = globals.randomNumberGenerator;
 	let generator = fluentFix.Generator || {};
@@ -49,14 +51,14 @@
 		constructor (obj) { 
 			super();
 
-			this.objectCache = fluentFix.objectMap(obj, function (prop) { 
-	            return fluentFix.Generator.coerse(prop);
+			this.generateCache = fluentFix.objectMap(obj, function (objProp) { 
+	            return fluentFix.Generator.coerse(objProp);
 	        })
 		}
 
 		generate() {
-			return fluentFix.objectMap(this.objectCache, function (prop) { 
-                return prop() 
+			return fluentFix.objectMap(this.generateCache, function (generateFunc) { 
+                return generateFunc() 
             });
 		}
 
@@ -201,6 +203,7 @@
     /* Assign to globals 
     ************************************************************/
 
-    globals.FluentFix = fluentFix;
+    globals.FluentFix = (globals.module || {}).exports = fluentFix;
 
-}(window.FluentFix || {}, window))
+}(window || global))
+var window, global;
