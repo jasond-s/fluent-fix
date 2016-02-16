@@ -1,4 +1,6 @@
-(function(crypto, globals) {
+(function (globals) {
+
+    let crypto = globals.crypto || globals.msCrypto;
 
     /* Regex for checking is string is UUID or empty GUID
 	/*****************************************************/
@@ -62,4 +64,7 @@
 
     globals.Uuid = Uuid;
 
-}(window.crypto || window.msCrypto, window));
+    globals.UuidCrypto = (globals.module || {}).exports = { Uuid: Uuid, randomNumberGenerator: rng, isUuid: isUuid };
+
+}(window || global))
+var window, global;

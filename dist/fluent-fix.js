@@ -115,7 +115,9 @@ var _createClass = (function () { function defineProperties(target, props) { for
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-(function (crypto, globals) {
+(function (globals) {
+
+    var crypto = globals.crypto || globals.msCrypto;
 
     /* Regex for checking is string is UUID or empty GUID
     /*****************************************************/
@@ -188,11 +190,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     })();
 
     globals.Uuid = Uuid;
-})(window.crypto || window.msCrypto, window);
+
+    globals.UuidCrypto = (globals.module || {}).exports = { Uuid: Uuid, randomNumberGenerator: rng, isUuid: isUuid };
+})(window || global);
+var window, global;
 
 'use strict';
 
-(function (fluentFix, globals) {
+(function (globals) {
+
+    var fluentFix = globals.FluentFix || {};
 
     var cryptoNumber = globals.randomNumberGenerator;
 
@@ -246,6 +253,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     fluentFix.objectIterate = objectIterate;
 
     function objectMap(obj, fn, namer) {
+        if (typeof obj === 'undefined' || obj == null) {
+            return obj;
+        }
+
         return objectIterate(obj, function (prop, oldObj, newObj) {
             newObj[namer ? namer(prop) : prop] = fn(oldObj[prop], prop);
         });
@@ -274,8 +285,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     /* Assign to globals 
     ************************************************************/
 
-    globals.FluentFix = fluentFix;
-})(window.FluentFix || {}, window);
+    globals.FluentFix = (globals.module || {}).exports = fluentFix;
+})(window || global);
+var window, global;
 
 'use strict';
 
@@ -287,7 +299,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== 'function' 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-(function (fluentFix, globals) {
+(function (globals) {
+
+	var fluentFix = globals.FluentFix || {};
 
 	var cryptoNumber = globals.randomNumberGenerator;
 	var generator = fluentFix.Generator || {};
@@ -348,16 +362,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 			_get(Object.getPrototypeOf(ObjectGenerator.prototype), 'constructor', this).call(this);
 
-			this.objectCache = fluentFix.objectMap(obj, function (prop) {
-				return fluentFix.Generator.coerse(prop);
+			this.generateCache = fluentFix.objectMap(obj, function (objProp) {
+				return fluentFix.Generator.coerse(objProp);
 			});
 		}
 
 		_createClass(ObjectGenerator, [{
 			key: 'generate',
 			value: function generate() {
-				return fluentFix.objectMap(this.objectCache, function (prop) {
-					return prop();
+				return fluentFix.objectMap(this.generateCache, function (generateFunc) {
+					return generateFunc();
 				});
 			}
 		}], [{
@@ -529,12 +543,15 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 	/* Assign to globals 
  ************************************************************/
 
-	globals.FluentFix = fluentFix;
-})(window.FluentFix || {}, window);
+	globals.FluentFix = (globals.module || {}).exports = fluentFix;
+})(window || global);
+var window, global;
 
 'use strict';
 
-(function (fluentFix, globals) {
+(function (globals) {
+
+    var fluentFix = globals.FluentFix || {};
 
     if (!fluentFix.Generator) throw new Error('Default generators not loaded.');
 
@@ -611,6 +628,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     /* Assign to globals 
     ************************************************************/
 
-    globals.FluentFix = fluentFix;
-})(window.FluentFix || {}, window);
+    globals.FluentFix = (globals.module || {}).exports = fluentFix;
+})(window || global);
+var window, global;
 

@@ -123,7 +123,9 @@ describe('Fixture builder', function () {
 			something: 5,
 			thing: "Hello World",
 			stuff: ["Good Bye", 5],
-			noStuff: []
+			noStuff: [],
+			nullStuff: null,
+			undefinedStuff: undefined
 		});
 
 		complexFixture = FluentFix.fixture({
@@ -158,6 +160,14 @@ describe('Fixture builder', function () {
 
 		it('will set the default value for an array', function () {
 			expect(testClass.stuff).toEqual([jasmine.any(String), jasmine.any(Number)]);
+		});
+
+		it('will set a null value for a null property', function () {
+			expect(testClass.nullStuff).toEqual(null);
+		});
+
+		it('will set an undefined value for undefined property', function () {
+			expect(testClass.undefinedStuff).toEqual(undefined);
 		});
 
 		it('will fluently create a new fixture for an object', function () {

@@ -1,4 +1,6 @@
-(function (fluentFix, globals) {
+(function (globals) {
+
+    let fluentFix = globals.FluentFix || {};
 
     let cryptoNumber = globals.randomNumberGenerator;
 
@@ -56,6 +58,10 @@
     fluentFix.objectIterate = objectIterate;
 
     function objectMap (obj, fn, namer) {
+        if (typeof obj === 'undefined' || obj == null) {
+            return obj;
+        }
+
         return objectIterate(obj, function (prop, oldObj, newObj) {
             newObj[namer ? namer(prop) : prop] = fn(oldObj[prop], prop);
         });
@@ -86,6 +92,7 @@
     /* Assign to globals 
     ************************************************************/
 
-    globals.FluentFix = fluentFix;
+    globals.FluentFix = (globals.module || {}).exports = fluentFix;
 
-}(window.FluentFix || {}, window))
+}(window || global))
+var window, global;
