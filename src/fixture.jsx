@@ -40,9 +40,9 @@
 
             let completeBuilder = fluentFix.objectMap(fixCopy, 
                     function (prop, name) { 
-                        return function (fn) {
+                        return function (funcOrValue) {
 
-                            transforms[name] = fn;
+                            transforms[name] = funcOrValue;
 
                             return completeBuilder;
                         };
