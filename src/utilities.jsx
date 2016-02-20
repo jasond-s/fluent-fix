@@ -2,7 +2,7 @@
 
     let fluentFix = globals.FluentFix || {};
 
-    let cryptoNumber = globals.randomNumberGenerator;
+    let cryptoNumber = globals.randomNumberGeneratorInRange;
 
 
     /* Utilities
@@ -14,12 +14,24 @@
         	len = length || 15;
 
         for (let i = 0; i < len; i++)
-			text.push(possible.charAt(Math.floor(cryptoNumber() % possible.length)));
+			text.push(possible.charAt(Math.floor(cryptoNumber(0, possible.length - 1))));
 
         return text.join('');
     }
 
     fluentFix.cryptoString = cryptoString;
+
+    function isNumber(num) {
+        return Object.prototype.toString.call(num) === '[object Number]';
+    }
+
+    fluentFix.isNumber = isNumber;
+
+    function isString(str) {
+        return Object.prototype.toString.call(str) === '[object String]';
+    }
+
+    fluentFix.isString = isString;
 
     function isArray(arr) {
         return Object.prototype.toString.call(arr) === '[object Array]';

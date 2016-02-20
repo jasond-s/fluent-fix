@@ -6,19 +6,19 @@
 
   var modules = {};
   var cache = {};
-  var aliases = {};
   var has = ({}).hasOwnProperty;
+
+  var aliases = {};
 
   var endsWith = function(str, suffix) {
     return str.indexOf(suffix, str.length - suffix.length) !== -1;
   };
 
-  var _cmp = 'components/';
   var unalias = function(alias, loaderPath) {
     var start = 0;
     if (loaderPath) {
-      if (loaderPath.indexOf(_cmp) === 0) {
-        start = _cmp.length;
+      if (loaderPath.indexOf('components/' === 0)) {
+        start = 'components/'.length;
       }
       if (loaderPath.indexOf('/', start) > 0) {
         loaderPath = loaderPath.substring(start, loaderPath.indexOf('/', start));
@@ -26,32 +26,33 @@
     }
     var result = aliases[alias + '/index.js'] || aliases[loaderPath + '/deps/' + alias + '/index.js'];
     if (result) {
-      return _cmp + result.substring(0, result.length - '.js'.length);
+      return 'components/' + result.substring(0, result.length - '.js'.length);
     }
     return alias;
   };
 
-  var _reg = /^\.\.?(\/|$)/;
-  var expand = function(root, name) {
-    var results = [], part;
-    var parts = (_reg.test(name) ? root + '/' + name : name).split('/');
-    for (var i = 0, length = parts.length; i < length; i++) {
-      part = parts[i];
-      if (part === '..') {
-        results.pop();
-      } else if (part !== '.' && part !== '') {
-        results.push(part);
+  var expand = (function() {
+    var reg = /^\.\.?(\/|$)/;
+    return function(root, name) {
+      var results = [], parts, part;
+      parts = (reg.test(name) ? root + '/' + name : name).split('/');
+      for (var i = 0, length = parts.length; i < length; i++) {
+        part = parts[i];
+        if (part === '..') {
+          results.pop();
+        } else if (part !== '.' && part !== '') {
+          results.push(part);
+        }
       }
-    }
-    return results.join('/');
-  };
-
+      return results.join('/');
+    };
+  })();
   var dirname = function(path) {
     return path.split('/').slice(0, -1).join('/');
   };
 
   var localRequire = function(path) {
-    return function expanded(name) {
+    return function(name) {
       var absolute = expand(dirname(path), name);
       return globals.require(absolute, path);
     };
@@ -106,7 +107,6 @@
   };
 
   require.brunch = true;
-  require._cache = cache;
   globals.require = require;
 })();
 'use strict';
@@ -132,16 +132,44 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     /*****************************************************/
 
     function rngCrypto() {
-        return crypto.getRandomValues(new Uint8Array(1))[0];
+        return crypto.getRandomValues(new Uint32Array(1))[0];
     }
 
-    function rngTime(i) {
-        return Math.random() * 0x100000000 >>> ((i || new Date().getTicks() & 0x03) << 3) & 0xff;
+    function rngTime(littleBitOfExtraEntropy) {
+        return Math.random() * 0x100000000 >>> ((littleBitOfExtraEntropy || new Date().getTicks() & 0x03) << 3) & 0xff;
     }
 
     var rng = crypto && crypto.getRandomValues && Uint8Array ? rngCrypto : rngTime;
 
     globals.randomNumberGenerator = rng;
+
+    function randomNumberGeneratorInRange() {
+        var min = arguments.length <= 0 || arguments[0] === undefined ? 0 : arguments[0];
+        var max = arguments.length <= 1 || arguments[1] === undefined ? 0xFFFFFFFF : arguments[1];
+
+        // should be number between 0 and 4,294,967,295...
+        var number = rng();
+
+        // make a percentage.
+        var asPercent = 100 / 0xFFFFFFFF * number / 100;
+
+        // redistribute the number across the new boundry
+        return Math.floor(asPercent * (max - min + 1)) + min;
+    }
+
+    globals.randomNumberGeneratorInRange = randomNumberGeneratorInRange;
+
+    function randomNumberGeneratorInSequence(last) {
+        var minJump = arguments.length <= 1 || arguments[1] === undefined ? 0x1 : arguments[1];
+        var maxJump = arguments.length <= 2 || arguments[2] === undefined ? 0x8 : arguments[2];
+
+        return randomNumberGeneratorInRange(last + minJump, last + maxJump);
+    }
+
+    globals.randomNumberGeneratorInSequence = randomNumberGeneratorInSequence;
+
+    /* Uuid object wrapper for validation and 'security'.
+    /*****************************************************/
 
     function generateNewId() {
         var i = 0;
@@ -151,9 +179,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             return v.toString(16);
         });
     }
-
-    /* Uuid object wrapper for validation and 'security'.
-    /*****************************************************/
 
     var Uuid = (function () {
         _createClass(Uuid, null, [{
@@ -201,7 +226,7 @@ var window, global;
 
     var fluentFix = globals.FluentFix || {};
 
-    var cryptoNumber = globals.randomNumberGenerator;
+    var cryptoNumber = globals.randomNumberGeneratorInRange;
 
     /* Utilities
     ************************************************************/
@@ -212,11 +237,23 @@ var window, global;
             len = length || 15;
 
         for (var i = 0; i < len; i++) {
-            text.push(possible.charAt(Math.floor(cryptoNumber() % possible.length)));
+            text.push(possible.charAt(Math.floor(cryptoNumber(0, possible.length - 1))));
         }return text.join('');
     }
 
     fluentFix.cryptoString = cryptoString;
+
+    function isNumber(num) {
+        return Object.prototype.toString.call(num) === '[object Number]';
+    }
+
+    fluentFix.isNumber = isNumber;
+
+    function isString(str) {
+        return Object.prototype.toString.call(str) === '[object String]';
+    }
+
+    fluentFix.isString = isString;
 
     function isArray(arr) {
         return Object.prototype.toString.call(arr) === '[object Array]';
@@ -304,6 +341,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 	var fluentFix = globals.FluentFix || {};
 
 	var cryptoNumber = globals.randomNumberGenerator;
+	var cryptoNumberInRange = globals.randomNumberGeneratorInRange;
 	var generator = fluentFix.Generator || {};
 
 	/* Type coersion and default generators
@@ -316,7 +354,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 	}
 
 	function coerse(something) {
-		if (something instanceof generator.Abstract) return something.generate;
+		if (something instanceof generator.Abstract) return something.generate.bind(something);
 
 		var select = findGen(something);
 		if (select) {
@@ -422,7 +460,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 			_get(Object.getPrototypeOf(NumberGenerator.prototype), 'constructor', this).call(this);
 
-			this.defaultNumber = number;
+			var tempNumber = number;
+
+			if (fluentFix.isObject(number)) {
+				var min = number.min || 0x0,
+				    max = number.max || 0xFFFFFFFF;
+
+				tempNumber = cryptoNumberInRange(min, max);
+			}
+
+			this.defaultNumber = tempNumber;
 		}
 
 		_createClass(NumberGenerator, [{
@@ -433,7 +480,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 		}], [{
 			key: 'match',
 			value: function match(something) {
-				return typeof something === 'number';
+				return fluentFix.isNumber(something);
 			}
 		}]);
 
@@ -461,7 +508,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 		}], [{
 			key: 'match',
 			value: function match(something) {
-				return typeof something === 'string';
+				return fluentFix.isString(something);
 			}
 		}]);
 
@@ -506,8 +553,29 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 			_get(Object.getPrototypeOf(ArrayGenerator.prototype), 'constructor', this).call(this);
 
-			if (!arr || arr.length < 1) this['default'] = [];else this.typeCache = arr.map(function (elem) {
-				return coerse(elem);
+			var tempType = null,
+			    tempArray = arr;
+
+			// default array.
+			if (!arr || arr.length < 1) {
+				this['default'] = [];
+				return;
+			}
+
+			// assess any options.
+			if (fluentFix.isObject(arr)) {
+				var _length = arr.length || 10,
+				    depth = arr.depth || 1,
+				    _type = arr.type || 0;
+
+				tempType = _type;
+				tempArray = Array.apply(null, { length: _length });
+
+				if (depth > 1) tempType = new ArrayGenerator({ length: _length, type: _type, depth: depth - 1 });
+			}
+
+			this.typeCache = tempArray.map(function (elem) {
+				return coerse(elem || tempType || type);
 			});
 		}
 

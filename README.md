@@ -1,5 +1,7 @@
 
-[ ![fluent-fix](https://travis-ci.org/jasond-s/fluent-fix.svg "Travis Build") ](https://travis-ci.org/jasond-s/fluent-fix "fluent-fix")
+[![fluent-fix](https://travis-ci.org/jasond-s/fluent-fix.svg "Travis Build") ](https://travis-ci.org/jasond-s/fluent-fix "fluent-fix")
+
+[![npm version](https://badge.fury.io/js/fluent-fix.svg)](https://badge.fury.io/js/fluent-fix)
 
 # fluent-fix
 
@@ -31,7 +33,7 @@ let someObject = {
 // The global FluentFix module is used to create fixtures.
 let fixture = FluentFix.fixture(someObject);
 
-// USe the fixture to create instances of the object with random data.
+// Use the fixture to create instances of the object with random data.
 let testObject = fixture();
 ```
 
@@ -84,7 +86,7 @@ let complexFixture = fixture
     .withThing(function () { return fixture(); })
     .build();
 
-// The evaluation of the final object unlike a lot of libraries is also lazy.
+// The evaluation of the final object, unlike a lot of libraries, is also lazy.
 // Nothing is evaluated until you call build!
 ```
 
