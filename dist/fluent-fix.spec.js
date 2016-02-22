@@ -6,19 +6,19 @@
 
   var modules = {};
   var cache = {};
-  var aliases = {};
   var has = ({}).hasOwnProperty;
+
+  var aliases = {};
 
   var endsWith = function(str, suffix) {
     return str.indexOf(suffix, str.length - suffix.length) !== -1;
   };
 
-  var _cmp = 'components/';
   var unalias = function(alias, loaderPath) {
     var start = 0;
     if (loaderPath) {
-      if (loaderPath.indexOf(_cmp) === 0) {
-        start = _cmp.length;
+      if (loaderPath.indexOf('components/' === 0)) {
+        start = 'components/'.length;
       }
       if (loaderPath.indexOf('/', start) > 0) {
         loaderPath = loaderPath.substring(start, loaderPath.indexOf('/', start));
@@ -26,32 +26,33 @@
     }
     var result = aliases[alias + '/index.js'] || aliases[loaderPath + '/deps/' + alias + '/index.js'];
     if (result) {
-      return _cmp + result.substring(0, result.length - '.js'.length);
+      return 'components/' + result.substring(0, result.length - '.js'.length);
     }
     return alias;
   };
 
-  var _reg = /^\.\.?(\/|$)/;
-  var expand = function(root, name) {
-    var results = [], part;
-    var parts = (_reg.test(name) ? root + '/' + name : name).split('/');
-    for (var i = 0, length = parts.length; i < length; i++) {
-      part = parts[i];
-      if (part === '..') {
-        results.pop();
-      } else if (part !== '.' && part !== '') {
-        results.push(part);
+  var expand = (function() {
+    var reg = /^\.\.?(\/|$)/;
+    return function(root, name) {
+      var results = [], parts, part;
+      parts = (reg.test(name) ? root + '/' + name : name).split('/');
+      for (var i = 0, length = parts.length; i < length; i++) {
+        part = parts[i];
+        if (part === '..') {
+          results.pop();
+        } else if (part !== '.' && part !== '') {
+          results.push(part);
+        }
       }
-    }
-    return results.join('/');
-  };
-
+      return results.join('/');
+    };
+  })();
   var dirname = function(path) {
     return path.split('/').slice(0, -1).join('/');
   };
 
   var localRequire = function(path) {
-    return function expanded(name) {
+    return function(name) {
       var absolute = expand(dirname(path), name);
       return globals.require(absolute, path);
     };
@@ -106,7 +107,6 @@
   };
 
   require.brunch = true;
-  require._cache = cache;
   globals.require = require;
 })();
 "use strict";
@@ -340,8 +340,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== 'function' 
 
 describe('Generators for fixture values', function () {
 
-	var fixture = null;
-	var testClass = null;
+	var fixture = null,
+	    testClass = null,
+	    testClassComplex = null;
 
 	describe('standard generators', function () {
 
@@ -392,6 +393,98 @@ describe('Generators for fixture values', function () {
 				expect(testClass.something).toEqual(jasmine.any(Number));
 				expect(testClass.other).toEqual(jasmine.any(Object));
 				expect(testClass.other.thing).toEqual(jasmine.any(String));
+			});
+		});
+	});
+
+	describe('number generator', function () {
+
+		describe('simple object', function () {
+
+			beforeEach(function () {
+				testClass = new FluentFix.Generator.For.Number(5).generate();
+				testClassComplex = new FluentFix.Generator.For.Number({ min: 10, max: 15 }).generate();
+			});
+
+			it('should return a new number as default if specified', function () {
+				expect(testClass).toEqual(jasmine.any(Number));
+				expect(testClass).toEqual(5);
+			});
+
+			it('should return a new number in range if options specified', function () {
+				expect(testClassComplex).toEqual(jasmine.any(Number));
+				expect(testClassComplex).toBeLessThan(16);
+				expect(testClassComplex).toBeGreaterThan(10);
+			});
+		});
+	});
+
+	describe('array generator', function () {
+
+		describe('simple object', function () {
+
+			beforeEach(function () {
+				fixture = new FluentFix.Generator.For.Array([5, 'Somestring', { str: 'Somestring' }]);
+
+				testClass = fixture.generate();
+			});
+
+			it('should return a new array with correct types when generating', function () {
+				expect(testClass[0]).toEqual(jasmine.any(Number));
+				expect(testClass[1]).toEqual(jasmine.any(String));
+				expect(testClass[2]).toEqual(jasmine.any(Object));
+				expect(testClass[2].str).toEqual(jasmine.any(String));
+			});
+		});
+
+		describe('complex object', function () {
+
+			beforeEach(function () {
+				fixture = new FluentFix.Generator.For.Array([5, 'Somestring', { str: 'Somestring' }]);
+
+				testClass = fixture.generate();
+			});
+
+			it('should return a new object when generating', function () {
+				expect(testClass[0]).toEqual(jasmine.any(Number));
+				expect(testClass[1]).toEqual(jasmine.any(String));
+				expect(testClass[2]).toEqual(jasmine.any(Object));
+				expect(testClass[2].str).toEqual(jasmine.any(String));
+			});
+		});
+
+		describe('array options', function () {
+
+			beforeEach(function () {
+				testClass = new FluentFix.Generator.For.Array({ length: 10, type: 'hello' }).generate();
+
+				testClassComplex = new FluentFix.Generator.For.Array({ length: 5, depth: 2, type: { value: 'hello' } }).generate();
+			});
+
+			it('should return an array of length and data specified', function () {
+
+				expect(testClass.length).toEqual(10);
+
+				for (var i = 0; i < testClass.length; i++) {
+					expect(testClass[i]).toEqual(jasmine.any(String));
+				};
+			});
+
+			it('should return an array of depth, length and complex data specified', function () {
+
+				expect(testClassComplex.length).toEqual(5);
+
+				for (var i = 0; i < testClassComplex.length; i++) {
+
+					expect(testClassComplex[i]).toEqual(jasmine.any(Array));
+					expect(testClassComplex[i].length).toEqual(5);
+
+					for (var j = 0; j < testClassComplex.length; j++) {
+
+						expect(testClassComplex[i][j]).toEqual(jasmine.any(Object));
+						expect(testClassComplex[i][j].value).toEqual(jasmine.any(String));
+					}
+				};
 			});
 		});
 	});
@@ -467,5 +560,68 @@ describe('Generators for fixture values', function () {
 			});
 		});
 	});
+});
+
+'use strict';
+
+describe('Utilities and RNG', function () {
+
+				var number;
+
+				describe('standard rng', function () {
+
+								beforeEach(function () {
+												// Loops in tests... don't judge me.
+								});
+
+								it('should create a number', function () {
+												expect(randomNumberGenerator()).toEqual(jasmine.any(Number));
+								});
+
+								it('in range should create a number', function () {
+												expect(randomNumberGeneratorInRange()).toEqual(jasmine.any(Number));
+								});
+
+								it('in range should create a number less than max and more than min', function () {
+												expect(randomNumberGeneratorInRange(0, 100)).toEqual(jasmine.any(Number));
+								});
+
+								it('in range should create a number less than max and more than min', function () {
+												for (var i = 0; i < 1000; i++) {
+
+																var _number = randomNumberGeneratorInRange(50, 100);
+
+																expect(_number).toBeLessThan(101);
+																expect(_number).toBeGreaterThan(49);
+
+																_number = randomNumberGeneratorInRange(20, 25);
+
+																expect(_number).toBeLessThan(26);
+																expect(_number).toBeGreaterThan(19);
+												}
+								});
+
+								it('in sequence should create a number with min and max jumps', function () {
+												for (var i = 0; i < 1000; i++) {
+
+																var seed = 5;
+
+																var _number2 = randomNumberGeneratorInSequence(seed, 1, 50);
+
+																expect(_number2).toBeLessThan(56);
+																expect(_number2).toBeGreaterThan(5);
+
+																_number2 = randomNumberGeneratorInSequence(_number2, 1, 50);
+
+																expect(_number2).toBeLessThan(106);
+																expect(_number2).toBeGreaterThan(6);
+
+																_number2 = randomNumberGeneratorInSequence(_number2, 1, 50);
+
+																expect(_number2).toBeLessThan(156);
+																expect(_number2).toBeGreaterThan(7);
+												}
+								});
+				});
 });
 

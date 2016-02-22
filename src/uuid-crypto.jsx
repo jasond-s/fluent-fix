@@ -15,16 +15,38 @@
 	/*****************************************************/
 
     function rngCrypto() {
-        return crypto.getRandomValues(new Uint8Array(1))[0];
+        return crypto.getRandomValues(new Uint32Array(1))[0];
     }
 
-    function rngTime(i) {
-        return Math.random() * 0x100000000 >>> ((i || new Date().getTicks() & 0x03) << 3) & 0xff;
+    function rngTime(littleBitOfExtraEntropy) {
+        return Math.random() * 0x100000000 >>> ((littleBitOfExtraEntropy || new Date().getTicks() & 0x03) << 3) & 0xff;
     }
 
     let rng = crypto && crypto.getRandomValues && Uint8Array ? rngCrypto : rngTime;
 
     globals.randomNumberGenerator = rng;
+
+    function randomNumberGeneratorInRange(min = 0, max = 0xFFFFFFFF) {
+        // should be number between 0 and 4,294,967,295...
+        var number = rng();
+
+        // make a percentage.
+        var asPercent = ((100 / 0xFFFFFFFF) * number) / 100;
+
+        // redistribute the number across the new boundry
+        return Math.floor(asPercent * (max - min + 1)) + min;
+    }
+    
+    globals.randomNumberGeneratorInRange = randomNumberGeneratorInRange;
+
+    function randomNumberGeneratorInSequence(last, minJump = 0x1, maxJump = 0x8) {
+        return randomNumberGeneratorInRange(last + minJump, last + maxJump);
+    }
+    
+    globals.randomNumberGeneratorInSequence = randomNumberGeneratorInSequence;
+
+    /* Uuid object wrapper for validation and 'security'.
+    /*****************************************************/
 
     function generateNewId() {
         let i = 0;
@@ -34,9 +56,6 @@
             return v.toString(16);
         });
     }    
-
-    /* Uuid object wrapper for validation and 'security'.
-	/*****************************************************/
 
     class Uuid {
 

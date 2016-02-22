@@ -1,7 +1,8 @@
 describe('Generators for fixture values', function () {
 
-	var fixture = null;
-	var testClass = null;
+	let fixture = null,
+		testClass = null,
+		testClassComplex = null;
 
 	describe('standard generators', function () {
 
@@ -52,6 +53,110 @@ describe('Generators for fixture values', function () {
 				expect(testClass.something).toEqual(jasmine.any(Number));
 				expect(testClass.other).toEqual(jasmine.any(Object));
 				expect(testClass.other.thing).toEqual(jasmine.any(String));
+			});
+		});
+	});
+
+	describe('number generator', function () {
+
+		describe('simple object', function () {
+
+			beforeEach(function () {
+				testClass = new FluentFix.Generator.For.Number(5).generate();
+				testClassComplex = new FluentFix.Generator.For.Number({min: 10, max: 15}).generate();
+			});
+
+			it('should return a new number as default if specified', function () {
+				expect(testClass).toEqual(jasmine.any(Number));
+				expect(testClass).toEqual(5);
+			});
+
+			it('should return a new number in range if options specified', function () {
+				expect(testClassComplex).toEqual(jasmine.any(Number));
+				expect(testClassComplex).toBeLessThan(16);
+				expect(testClassComplex).toBeGreaterThan(10);
+			});
+		});
+	});
+
+	describe('array generator', function () {
+
+		describe('simple object', function () {
+
+			beforeEach(function () {
+				fixture = new FluentFix.Generator.For.Array([
+					5,
+					'Somestring',
+					{ str: 'Somestring' }
+				]);
+
+				testClass = fixture.generate();
+			});
+
+			it('should return a new array with correct types when generating', function () {
+				expect(testClass[0]).toEqual(jasmine.any(Number));
+				expect(testClass[1]).toEqual(jasmine.any(String));
+				expect(testClass[2]).toEqual(jasmine.any(Object));
+				expect(testClass[2].str).toEqual(jasmine.any(String));
+			});
+		});
+
+		describe('complex object', function () {
+
+			beforeEach(function () {
+				fixture = new FluentFix.Generator.For.Array([
+					5,
+					'Somestring',
+					{ str: 'Somestring' }
+				]);
+
+				testClass = fixture.generate();
+			});
+
+			it('should return a new object when generating', function () {
+				expect(testClass[0]).toEqual(jasmine.any(Number));
+				expect(testClass[1]).toEqual(jasmine.any(String));
+				expect(testClass[2]).toEqual(jasmine.any(Object));
+				expect(testClass[2].str).toEqual(jasmine.any(String));
+			});
+		});
+
+		describe('array options', function () {
+
+			beforeEach(function () {
+				testClass = new FluentFix.Generator.For
+					.Array({ length: 10, type: 'hello' })
+					.generate();
+
+				testClassComplex = new FluentFix.Generator.For
+					.Array({ length: 5, depth: 2, type: { value: 'hello' }})
+					.generate();
+			});
+
+			it('should return an array of length and data specified', function () {
+				
+				expect(testClass.length).toEqual(10);
+
+				for (var i = 0; i < testClass.length; i++) {
+					expect(testClass[i]).toEqual(jasmine.any(String));				
+				};
+			});
+
+			it('should return an array of depth, length and complex data specified', function () {
+		
+				expect(testClassComplex.length).toEqual(5);
+
+				for (var i = 0; i < testClassComplex.length; i++) {
+
+					expect(testClassComplex[i]).toEqual(jasmine.any(Array));
+					expect(testClassComplex[i].length).toEqual(5);
+
+					for (var j = 0; j < testClassComplex.length; j++) {
+
+						expect(testClassComplex[i][j]).toEqual(jasmine.any(Object));
+						expect(testClassComplex[i][j].value).toEqual(jasmine.any(String));
+					}				
+				};
 			});
 		});
 	});

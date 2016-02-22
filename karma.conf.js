@@ -15,10 +15,6 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-        // Angular 
-        'node_modules/angular/angular.min.js',
-        'node_modules/angular-mocks/angular-mocks.js',
-
         'dist/fluent-fix.js',
 
         'dist/fluent-fix.spec.js'
