@@ -4,6 +4,7 @@
 
     let cryptoNumber = globals.randomNumberGenerator;
     let cryptoNumberInRange = globals.randomNumberGeneratorInRange;
+    let cryptoNumberInSequence = globals.randomNumberGeneratorInSequence;
 	let generator = fluentFix.Generator || {};
 
 
@@ -106,22 +107,25 @@
 		constructor(number) {
 			super();
 
-			let tempNumber = number;
+			let tempNumber = () => cryptoNumber();
 
+			if (fluentFix.isNumber(number)) {
+				tempNumber = () => number;
+			}
+
+	        // assess any options.
 	        if (fluentFix.isObject(number)) {
 	        	let min = number.min || 0x0,
 	        		max = number.max || 0xFFFFFFFF;
 
-        		tempNumber = cryptoNumberInRange(min, max);
+        		tempNumber = () => cryptoNumberInRange(min, max);
 	        }
 
-			this.defaultNumber = tempNumber;
+			this.number = tempNumber;
 		}
 
 		generate() {
-			return typeof this.defaultNumber === 'undefined' 
-				? cryptoNumber() 
-				: this.defaultNumber;
+			return this.number();
 		}
 
 		static match(something) {
@@ -157,15 +161,60 @@
 		constructor (date) {
 			super();
 
-			this.date = date;			
+			let now = new Date().getTime();
+
+			let tempDate = () => this.newDateFromTicks(cryptoNumber());
+
+			if (fluentFix.isDate(date)) {
+				tempDate = () => this.newDateFromTicks(date.getTime());
+			}
+
+			if (fluentFix.isNumber(date)) {
+				tempDate = () => this.newDateFromTicks(date);
+			}
+
+	        // assess any options.
+	        if (fluentFix.isObject(date)) {
+	        	let min = date.min || now,
+	        		max = date.max || now,
+	        		sequential = date.sequential || false,
+	        		seed = date.seed || now;
+	        		
+	        	this.lastGeneratedDate = this.newDateFromTicks(seed);
+
+	        	let tempMin = min;
+	        	if (fluentFix.isDate(min)) {
+	        		tempMin = min.getTime();
+	        	}
+
+	        	let tempMax = max;
+	        	if (fluentFix.isDate(max)) {
+	        		tempMax = max.getTime();
+	        	}
+
+        		if (sequential) 
+        			tempDate = () => this.newDateFromTicks(cryptoNumberInSequence(tempMin, tempMax, this.lastGeneratedDate.getTime()));
+        		else 
+        			tempDate = () => this.newDateFromTicks(cryptoNumberInRange(tempMin, tempMax));
+	        }
+
+			this.date = tempDate;			
 		}
 
 		generate() {
-			return new Date(this.date || cryptoNumber());
+			return this.lastGeneratedDate = this.date();
 		}
 
 		static match(something) {
 			return fluentFix.isDate(something);
+		}
+
+		// Private methods
+
+		newDateFromTicks(ticks) {
+			let date = new Date();
+			date.setTime(ticks);
+			return date;
 		}
 	}
 
@@ -181,7 +230,7 @@
 
 			// default array.
 			if (!arr || arr.length < 1) {
-	            this.default = [];
+	            this.defaultArray = [];
 	            return;
 	        }
 
@@ -194,15 +243,16 @@
 	        	tempType = type;
 	        	tempArray = Array.apply(null, {length: length});
 
-	        	if (depth > 1) 
+	        	if (depth > 1) {
 	        		tempType = new ArrayGenerator({length: length, type: type, depth: depth - 1});
+	        	}
 	        }
 
 	        this.typeCache = tempArray.map((elem) => coerse(elem || tempType || type));
 		}
 
 		generate() {  
-	        return this.default || this.typeCache.map(function (elem) {
+	        return this.defaultArray || this.typeCache.map(function (elem) {
                 return elem();
             });
 		}
