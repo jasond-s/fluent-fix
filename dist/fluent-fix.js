@@ -159,9 +159,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
     globals.randomNumberGeneratorInRange = randomNumberGeneratorInRange;
 
-    function randomNumberGeneratorInSequence(last) {
-        var minJump = arguments.length <= 1 || arguments[1] === undefined ? 0x1 : arguments[1];
-        var maxJump = arguments.length <= 2 || arguments[2] === undefined ? 0x8 : arguments[2];
+    function randomNumberGeneratorInSequence() {
+        var minJump = arguments.length <= 0 || arguments[0] === undefined ? 0x1 : arguments[0];
+        var maxJump = arguments.length <= 1 || arguments[1] === undefined ? 0x8 : arguments[1];
+        var last = arguments.length <= 2 || arguments[2] === undefined ? 0 : arguments[2];
 
         return randomNumberGeneratorInRange(last + minJump, last + maxJump);
     }
@@ -342,6 +343,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 	var cryptoNumber = globals.randomNumberGenerator;
 	var cryptoNumberInRange = globals.randomNumberGeneratorInRange;
+	var cryptoNumberInSequence = globals.randomNumberGeneratorInSequence;
 	var generator = fluentFix.Generator || {};
 
 	/* Type coersion and default generators
@@ -460,22 +462,35 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 			_get(Object.getPrototypeOf(NumberGenerator.prototype), 'constructor', this).call(this);
 
-			var tempNumber = number;
+			var tempNumber = function tempNumber() {
+				return cryptoNumber();
+			};
 
-			if (fluentFix.isObject(number)) {
-				var min = number.min || 0x0,
-				    max = number.max || 0xFFFFFFFF;
-
-				tempNumber = cryptoNumberInRange(min, max);
+			if (fluentFix.isNumber(number)) {
+				tempNumber = function () {
+					return number;
+				};
 			}
 
-			this.defaultNumber = tempNumber;
+			// assess any options.
+			if (fluentFix.isObject(number)) {
+				(function () {
+					var min = number.min || 0x0,
+					    max = number.max || 0xFFFFFFFF;
+
+					tempNumber = function () {
+						return cryptoNumberInRange(min, max);
+					};
+				})();
+			}
+
+			this.number = tempNumber;
 		}
 
 		_createClass(NumberGenerator, [{
 			key: 'generate',
 			value: function generate() {
-				return typeof this.defaultNumber === 'undefined' ? cryptoNumber() : this.defaultNumber;
+				return this.number();
 			}
 		}], [{
 			key: 'match',
@@ -521,17 +536,75 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 		_inherits(DateGenerator, _GeneratorBase4);
 
 		function DateGenerator(date) {
+			var _this = this;
+
 			_classCallCheck(this, DateGenerator);
 
 			_get(Object.getPrototypeOf(DateGenerator.prototype), 'constructor', this).call(this);
 
-			this.date = date;
+			var now = new Date().getTime();
+
+			var tempDate = function tempDate() {
+				return _this.newDateFromTicks(cryptoNumber());
+			};
+
+			if (fluentFix.isDate(date)) {
+				tempDate = function () {
+					return _this.newDateFromTicks(date.getTime());
+				};
+			}
+
+			if (fluentFix.isNumber(date)) {
+				tempDate = function () {
+					return _this.newDateFromTicks(date);
+				};
+			}
+
+			// assess any options.
+			if (fluentFix.isObject(date)) {
+				(function () {
+					var min = date.min || now,
+					    max = date.max || now,
+					    sequential = date.sequential || false,
+					    seed = date.seed || now;
+
+					_this.lastGeneratedDate = _this.newDateFromTicks(seed);
+
+					var tempMin = min;
+					if (fluentFix.isDate(min)) {
+						tempMin = min.getTime();
+					}
+
+					var tempMax = max;
+					if (fluentFix.isDate(max)) {
+						tempMax = max.getTime();
+					}
+
+					if (sequential) tempDate = function () {
+						return _this.newDateFromTicks(cryptoNumberInSequence(tempMin, tempMax, _this.lastGeneratedDate.getTime()));
+					};else tempDate = function () {
+						return _this.newDateFromTicks(cryptoNumberInRange(tempMin, tempMax));
+					};
+				})();
+			}
+
+			this.date = tempDate;
 		}
 
 		_createClass(DateGenerator, [{
 			key: 'generate',
 			value: function generate() {
-				return new Date(this.date || cryptoNumber());
+				return this.lastGeneratedDate = this.date();
+			}
+		}, {
+			key: 'newDateFromTicks',
+
+			// Private methods
+
+			value: function newDateFromTicks(ticks) {
+				var date = new Date();
+				date.setTime(ticks);
+				return date;
 			}
 		}], [{
 			key: 'match',
@@ -558,7 +631,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 			// default array.
 			if (!arr || arr.length < 1) {
-				this['default'] = [];
+				this.defaultArray = [];
 				return;
 			}
 
@@ -571,7 +644,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 				tempType = _type;
 				tempArray = Array.apply(null, { length: _length });
 
-				if (depth > 1) tempType = new ArrayGenerator({ length: _length, type: _type, depth: depth - 1 });
+				if (depth > 1) {
+					tempType = new ArrayGenerator({ length: _length, type: _type, depth: depth - 1 });
+				}
 			}
 
 			this.typeCache = tempArray.map(function (elem) {
@@ -582,7 +657,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 		_createClass(ArrayGenerator, [{
 			key: 'generate',
 			value: function generate() {
-				return this['default'] || this.typeCache.map(function (elem) {
+				return this.defaultArray || this.typeCache.map(function (elem) {
 					return elem();
 				});
 			}

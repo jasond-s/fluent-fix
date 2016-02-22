@@ -342,7 +342,8 @@ describe('Generators for fixture values', function () {
 
 	var fixture = null,
 	    testClass = null,
-	    testClassComplex = null;
+	    testClassComplex = null,
+	    testClassComplex2 = null;
 
 	describe('standard generators', function () {
 
@@ -414,7 +415,59 @@ describe('Generators for fixture values', function () {
 			it('should return a new number in range if options specified', function () {
 				expect(testClassComplex).toEqual(jasmine.any(Number));
 				expect(testClassComplex).toBeLessThan(16);
-				expect(testClassComplex).toBeGreaterThan(10);
+				expect(testClassComplex).toBeGreaterThan(9);
+			});
+		});
+	});
+
+	describe('date generator', function () {
+
+		describe('simple object', function () {
+
+			var testDate = new Date(),
+			    testDate1 = new Date(1990, 1, 1),
+			    testDate2 = new Date(1990, 1, 20);
+
+			beforeEach(function () {
+				testClass = new FluentFix.Generator.For.Date(testDate).generate();
+
+				testClassComplex = new FluentFix.Generator.For.Date({ min: testDate1, max: testDate2 });
+
+				var one_second = 1000;
+				var one_minute = 60 * one_second;
+
+				testClassComplex2 = new FluentFix.Generator.For.Date({ min: one_second, max: one_minute, sequential: true });
+			});
+
+			it('should return a new date as default if specified', function () {
+				expect(testClass).toEqual(jasmine.any(Date));
+				expect(testClass).not.toBe(testDate);
+				expect(testClass.getTime()).toEqual(testDate.getTime());
+			});
+
+			it('should return a new date in range if options specified', function () {
+				for (var i = 0; i < 10; i++) {
+
+					var testItem = testClassComplex.generate();
+
+					expect(testItem).toEqual(jasmine.any(Date));
+					expect(testItem.getTime()).toBeLessThan(testDate2.getTime());
+					expect(testItem.getTime()).toBeGreaterThan(testDate1.getTime());
+				}
+			});
+
+			it('should return a new date in sequence if options specified', function () {
+				var testItem = null,
+				    testTicks = 0;
+
+				for (var i = 0; i < 10; i++) {
+
+					testTicks = testItem ? testItem.getTime() : 0;
+					testItem = testClassComplex2.generate();
+
+					expect(testItem).toEqual(jasmine.any(Date));
+					expect(testItem.getTime()).toBeGreaterThan(testTicks);
+				}
 			});
 		});
 	});
@@ -606,17 +659,17 @@ describe('Utilities and RNG', function () {
 
 																var seed = 5;
 
-																var _number2 = randomNumberGeneratorInSequence(seed, 1, 50);
+																var _number2 = randomNumberGeneratorInSequence(1, 50, seed);
 
 																expect(_number2).toBeLessThan(56);
 																expect(_number2).toBeGreaterThan(5);
 
-																_number2 = randomNumberGeneratorInSequence(_number2, 1, 50);
+																_number2 = randomNumberGeneratorInSequence(1, 50, _number2);
 
 																expect(_number2).toBeLessThan(106);
 																expect(_number2).toBeGreaterThan(6);
 
-																_number2 = randomNumberGeneratorInSequence(_number2, 1, 50);
+																_number2 = randomNumberGeneratorInSequence(1, 50, _number2);
 
 																expect(_number2).toBeLessThan(156);
 																expect(_number2).toBeGreaterThan(7);

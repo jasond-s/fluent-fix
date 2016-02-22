@@ -2,7 +2,8 @@ describe('Generators for fixture values', function () {
 
 	let fixture = null,
 		testClass = null,
-		testClassComplex = null;
+		testClassComplex = null,
+		testClassComplex2 = null;
 
 	describe('standard generators', function () {
 
@@ -74,7 +75,59 @@ describe('Generators for fixture values', function () {
 			it('should return a new number in range if options specified', function () {
 				expect(testClassComplex).toEqual(jasmine.any(Number));
 				expect(testClassComplex).toBeLessThan(16);
-				expect(testClassComplex).toBeGreaterThan(10);
+				expect(testClassComplex).toBeGreaterThan(9);
+			});
+		});
+	});
+
+	describe('date generator', function () {
+
+		describe('simple object', function () {
+
+			let testDate = new Date(),
+				testDate1 = new Date(1990, 1, 1),
+				testDate2 = new Date(1990, 1, 20);
+
+			beforeEach(function () {
+				testClass = new FluentFix.Generator.For.Date(testDate).generate();
+
+				testClassComplex = new FluentFix.Generator.For.Date({min: testDate1, max: testDate2});
+
+				let one_second = 1000;
+				let one_minute = 60 * one_second;
+
+				testClassComplex2 = new FluentFix.Generator.For.Date({min: one_second, max: one_minute, sequential: true});
+			});
+
+			it('should return a new date as default if specified', function () {
+				expect(testClass).toEqual(jasmine.any(Date));
+				expect(testClass).not.toBe(testDate);
+				expect(testClass.getTime()).toEqual(testDate.getTime());
+			});
+			
+			it('should return a new date in range if options specified', function () {
+				for (var i = 0; i < 10; i++) {
+
+					let testItem = testClassComplex.generate();
+
+					expect(testItem).toEqual(jasmine.any(Date));
+					expect(testItem.getTime()).toBeLessThan(testDate2.getTime());
+					expect(testItem.getTime()).toBeGreaterThan(testDate1.getTime());
+				}
+			});
+			
+			it('should return a new date in sequence if options specified', function () {
+				let testItem = null,
+					testTicks = 0;
+
+				for (var i = 0; i < 10; i++) {
+
+					testTicks = testItem ? testItem.getTime() : 0;
+					testItem = testClassComplex2.generate();
+
+					expect(testItem).toEqual(jasmine.any(Date));
+					expect(testItem.getTime()).toBeGreaterThan(testTicks);
+				}
 			});
 		});
 	});

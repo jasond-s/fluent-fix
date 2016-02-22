@@ -39,7 +39,7 @@
     
     globals.randomNumberGeneratorInRange = randomNumberGeneratorInRange;
 
-    function randomNumberGeneratorInSequence(last, minJump = 0x1, maxJump = 0x8) {
+    function randomNumberGeneratorInSequence(minJump = 0x1, maxJump = 0x8, last = 0) {
         return randomNumberGeneratorInRange(last + minJump, last + maxJump);
     }
     

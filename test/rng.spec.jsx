@@ -40,17 +40,17 @@ describe('Utilities and RNG', function () {
 
 				let seed = 5;
 
-				let number = randomNumberGeneratorInSequence(seed, 1, 50);
+				let number = randomNumberGeneratorInSequence(1, 50, seed);
 
 				expect(number).toBeLessThan(56);
 				expect(number).toBeGreaterThan(5);
 
-				number = randomNumberGeneratorInSequence(number, 1, 50);
+				number = randomNumberGeneratorInSequence(1, 50, number);
 
 				expect(number).toBeLessThan(106);
 				expect(number).toBeGreaterThan(6);
 
-				number = randomNumberGeneratorInSequence(number, 1, 50);
+				number = randomNumberGeneratorInSequence(1, 50, number);
 
 				expect(number).toBeLessThan(156);
 				expect(number).toBeGreaterThan(7);
