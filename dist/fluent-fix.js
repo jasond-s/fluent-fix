@@ -185,22 +185,27 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         _createClass(Uuid, null, [{
             key: 'EMPTY',
             get: function get() {
-                return '00000000-0000-0000-0000-000000000000';
+                return new Uuid('00000000-0000-0000-0000-000000000000');
             }
         }]);
 
         function Uuid(seed) {
             _classCallCheck(this, Uuid);
 
-            if (seed && !isUuid(seed)) {
+            if (seed && !isUuid(seed.toString())) {
                 throw new Error('seed value for uuid must be valid uuid.');
             }
 
-            this.innervalue = seed || generateNewId();
+            this.innervalue = (seed || generateNewId()).toString();
             this.innertime = new Date();
         }
 
         _createClass(Uuid, [{
+            key: 'toString',
+            value: function toString() {
+                return this.value;
+            }
+        }, {
             key: 'value',
             get: function get() {
                 return this.innervalue;
@@ -339,354 +344,354 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 (function (globals) {
 
-	var fluentFix = globals.FluentFix || {};
-
-	var cryptoNumber = globals.randomNumberGenerator;
-	var cryptoNumberInRange = globals.randomNumberGeneratorInRange;
-	var cryptoNumberInSequence = globals.randomNumberGeneratorInSequence;
-	var generator = fluentFix.Generator || {};
-
-	/* Type coersion and default generators
- ************************************************************/
-
-	function findGen(something) {
-		for (var prop in generator.For) {
-			if (generator.For.hasOwnProperty(prop)) if (generator.For[prop].match(something)) return generator.For[prop];
-		}return generator.Object;
-	}
+    var fluentFix = globals.FluentFix || {};
+
+    var cryptoNumber = globals.randomNumberGenerator;
+    var cryptoNumberInRange = globals.randomNumberGeneratorInRange;
+    var cryptoNumberInSequence = globals.randomNumberGeneratorInSequence;
+    var generator = fluentFix.Generator || {};
+
+    /* Type coersion and default generators
+    ************************************************************/
+
+    function findGen(something) {
+        for (var prop in generator.For) {
+            if (generator.For.hasOwnProperty(prop)) if (generator.For[prop].match(something)) return generator.For[prop];
+        }return generator.Object;
+    }
 
-	function coerse(something) {
-		if (something instanceof generator.Abstract) return something.generate.bind(something);
+    function coerse(something) {
+        if (something instanceof generator.Abstract) return something.generate.bind(something);
 
-		var select = findGen(something);
-		if (select) {
-			var gen = new select(something);
-			return gen.generate.bind(gen);
-		}
+        var select = findGen(something);
+        if (select) {
+            var gen = new select(something);
+            return gen.generate.bind(gen);
+        }
 
-		return null;
-	}
+        return null;
+    }
 
-	generator.coerse = coerse;
+    generator.coerse = coerse;
 
-	/* Abstracts and generator module
- ************************************************************/
+    /* Abstracts and generator module
+    ************************************************************/
 
-	var GeneratorBase = (function () {
-		function GeneratorBase() {
-			_classCallCheck(this, GeneratorBase);
-		}
-
-		_createClass(GeneratorBase, [{
-			key: 'generate',
-			value: function generate() {
-				throw new Error('Cannot call abstract generate function.');
-			}
-		}], [{
-			key: 'match',
-			value: function match(_) {
-				throw new Error('Cannot call abstract matching function.');
-			}
-		}]);
-
-		return GeneratorBase;
-	})();
-
-	generator.Abstract = GeneratorBase;
-
-	var ObjectGenerator = (function (_GeneratorBase) {
-		_inherits(ObjectGenerator, _GeneratorBase);
-
-		function ObjectGenerator(obj) {
-			_classCallCheck(this, ObjectGenerator);
-
-			_get(Object.getPrototypeOf(ObjectGenerator.prototype), 'constructor', this).call(this);
-
-			this.generateCache = fluentFix.objectMap(obj, function (objProp) {
-				return fluentFix.Generator.coerse(objProp);
-			});
-		}
-
-		_createClass(ObjectGenerator, [{
-			key: 'generate',
-			value: function generate() {
-				return fluentFix.objectMap(this.generateCache, function (generateFunc) {
-					return generateFunc();
-				});
-			}
-		}], [{
-			key: 'match',
-			value: function match(something) {
-				return fluentFix.isObject(something);
-			}
-		}]);
-
-		return ObjectGenerator;
-	})(GeneratorBase);
-
-	generator.Object = ObjectGenerator;
-
-	/* Custom generators
- ************************************************************/
-
-	var genFor = generator.For || {};
-
-	function addGenerator(generator) {
-		if (!(new generator() instanceof GeneratorBase)) {
-			throw new Error('Generator must be of generator type.');
-		}
-
-		genFor[generator.name] = generator;
-	}
-
-	generator.addGenerator = addGenerator;
+    var GeneratorBase = (function () {
+        function GeneratorBase() {
+            _classCallCheck(this, GeneratorBase);
+        }
+
+        _createClass(GeneratorBase, [{
+            key: 'generate',
+            value: function generate() {
+                throw new Error('Cannot call abstract generate function.');
+            }
+        }], [{
+            key: 'match',
+            value: function match(_) {
+                throw new Error('Cannot call abstract matching function.');
+            }
+        }]);
+
+        return GeneratorBase;
+    })();
+
+    generator.Abstract = GeneratorBase;
+
+    var ObjectGenerator = (function (_GeneratorBase) {
+        _inherits(ObjectGenerator, _GeneratorBase);
+
+        function ObjectGenerator(obj) {
+            _classCallCheck(this, ObjectGenerator);
+
+            _get(Object.getPrototypeOf(ObjectGenerator.prototype), 'constructor', this).call(this);
+
+            this.generateCache = fluentFix.objectMap(obj, function (objProp) {
+                return fluentFix.Generator.coerse(objProp);
+            });
+        }
+
+        _createClass(ObjectGenerator, [{
+            key: 'generate',
+            value: function generate() {
+                return fluentFix.objectMap(this.generateCache, function (generateFunc) {
+                    return generateFunc();
+                });
+            }
+        }], [{
+            key: 'match',
+            value: function match(something) {
+                return fluentFix.isObject(something);
+            }
+        }]);
+
+        return ObjectGenerator;
+    })(GeneratorBase);
+
+    generator.Object = ObjectGenerator;
+
+    /* Custom generators
+    ************************************************************/
+
+    var genFor = generator.For || {};
+
+    function addGenerator(generator) {
+        if (!(new generator() instanceof GeneratorBase)) {
+            throw new Error('Generator must be of generator type.');
+        }
+
+        genFor[generator.name] = generator;
+    }
+
+    generator.addGenerator = addGenerator;
 
-	function removeGenerator(generator) {
-		if (!(new generator() instanceof GeneratorBase)) {
-			throw new Error('Generator must be of generator type.');
-		}
+    function removeGenerator(generator) {
+        if (!(new generator() instanceof GeneratorBase)) {
+            throw new Error('Generator must be of generator type.');
+        }
 
-		delete genFor[generator.name];
-	}
+        delete genFor[generator.name];
+    }
 
-	generator.removeGenerator = removeGenerator;
+    generator.removeGenerator = removeGenerator;
 
-	/* Default generators
- ************************************************************/
+    /* Default generators
+    ************************************************************/
 
-	var NumberGenerator = (function (_GeneratorBase2) {
-		_inherits(NumberGenerator, _GeneratorBase2);
+    var NumberGenerator = (function (_GeneratorBase2) {
+        _inherits(NumberGenerator, _GeneratorBase2);
 
-		function NumberGenerator(number) {
-			_classCallCheck(this, NumberGenerator);
+        function NumberGenerator(number) {
+            _classCallCheck(this, NumberGenerator);
 
-			_get(Object.getPrototypeOf(NumberGenerator.prototype), 'constructor', this).call(this);
+            _get(Object.getPrototypeOf(NumberGenerator.prototype), 'constructor', this).call(this);
 
-			var tempNumber = function tempNumber() {
-				return cryptoNumber();
-			};
-
-			if (fluentFix.isNumber(number)) {
-				tempNumber = function () {
-					return number;
-				};
-			}
+            var tempNumber = function tempNumber() {
+                return cryptoNumber();
+            };
+
+            if (fluentFix.isNumber(number)) {
+                tempNumber = function () {
+                    return number;
+                };
+            }
 
-			// assess any options.
-			if (fluentFix.isObject(number)) {
-				(function () {
-					var min = number.min || 0x0,
-					    max = number.max || 0xFFFFFFFF;
-
-					tempNumber = function () {
-						return cryptoNumberInRange(min, max);
-					};
-				})();
-			}
-
-			this.number = tempNumber;
-		}
-
-		_createClass(NumberGenerator, [{
-			key: 'generate',
-			value: function generate() {
-				return this.number();
-			}
-		}], [{
-			key: 'match',
-			value: function match(something) {
-				return fluentFix.isNumber(something);
-			}
-		}]);
-
-		return NumberGenerator;
-	})(GeneratorBase);
-
-	genFor.Number = NumberGenerator;
-
-	var StringGenerator = (function (_GeneratorBase3) {
-		_inherits(StringGenerator, _GeneratorBase3);
-
-		function StringGenerator(string) {
-			_classCallCheck(this, StringGenerator);
-
-			_get(Object.getPrototypeOf(StringGenerator.prototype), 'constructor', this).call(this);
-
-			this.defaultString = string;
-		}
-
-		_createClass(StringGenerator, [{
-			key: 'generate',
-			value: function generate() {
-				return fluentFix.cryptoString(typeof this.defaultString === 'undefined' ? cryptoNumber() : this.defaultString.length);
-			}
-		}], [{
-			key: 'match',
-			value: function match(something) {
-				return fluentFix.isString(something);
-			}
-		}]);
-
-		return StringGenerator;
-	})(GeneratorBase);
-
-	genFor.String = StringGenerator;
-
-	var DateGenerator = (function (_GeneratorBase4) {
-		_inherits(DateGenerator, _GeneratorBase4);
-
-		function DateGenerator(date) {
-			var _this = this;
-
-			_classCallCheck(this, DateGenerator);
-
-			_get(Object.getPrototypeOf(DateGenerator.prototype), 'constructor', this).call(this);
-
-			var now = new Date().getTime();
-
-			var tempDate = function tempDate() {
-				return _this.newDateFromTicks(cryptoNumber());
-			};
-
-			if (fluentFix.isDate(date)) {
-				tempDate = function () {
-					return _this.newDateFromTicks(date.getTime());
-				};
-			}
-
-			if (fluentFix.isNumber(date)) {
-				tempDate = function () {
-					return _this.newDateFromTicks(date);
-				};
-			}
-
-			// assess any options.
-			if (fluentFix.isObject(date)) {
-				(function () {
-					var min = date.min || now,
-					    max = date.max || now,
-					    sequential = date.sequential || false,
-					    seed = date.seed || now;
-
-					_this.lastGeneratedDate = _this.newDateFromTicks(seed);
-
-					var tempMin = min;
-					if (fluentFix.isDate(min)) {
-						tempMin = min.getTime();
-					}
-
-					var tempMax = max;
-					if (fluentFix.isDate(max)) {
-						tempMax = max.getTime();
-					}
-
-					if (sequential) tempDate = function () {
-						return _this.newDateFromTicks(cryptoNumberInSequence(tempMin, tempMax, _this.lastGeneratedDate.getTime()));
-					};else tempDate = function () {
-						return _this.newDateFromTicks(cryptoNumberInRange(tempMin, tempMax));
-					};
-				})();
-			}
-
-			this.date = tempDate;
-		}
-
-		_createClass(DateGenerator, [{
-			key: 'generate',
-			value: function generate() {
-				return this.lastGeneratedDate = this.date();
-			}
-		}, {
-			key: 'newDateFromTicks',
-
-			// Private methods
-
-			value: function newDateFromTicks(ticks) {
-				var date = new Date();
-				date.setTime(ticks);
-				return date;
-			}
-		}], [{
-			key: 'match',
-			value: function match(something) {
-				return fluentFix.isDate(something);
-			}
-		}]);
-
-		return DateGenerator;
-	})(GeneratorBase);
-
-	genFor.Date = DateGenerator;
-
-	var ArrayGenerator = (function (_GeneratorBase5) {
-		_inherits(ArrayGenerator, _GeneratorBase5);
-
-		function ArrayGenerator(arr) {
-			_classCallCheck(this, ArrayGenerator);
-
-			_get(Object.getPrototypeOf(ArrayGenerator.prototype), 'constructor', this).call(this);
-
-			var tempType = null,
-			    tempArray = arr;
-
-			// default array.
-			if (!arr || arr.length < 1) {
-				this.defaultArray = [];
-				return;
-			}
-
-			// assess any options.
-			if (fluentFix.isObject(arr)) {
-				var _length = arr.length || 10,
-				    depth = arr.depth || 1,
-				    _type = arr.type || 0;
-
-				tempType = _type;
-				tempArray = Array.apply(null, { length: _length });
-
-				if (depth > 1) {
-					tempType = new ArrayGenerator({ length: _length, type: _type, depth: depth - 1 });
-				}
-			}
-
-			this.typeCache = tempArray.map(function (elem) {
-				return coerse(elem || tempType || type);
-			});
-		}
-
-		_createClass(ArrayGenerator, [{
-			key: 'generate',
-			value: function generate() {
-				return this.defaultArray || this.typeCache.map(function (elem) {
-					return elem();
-				});
-			}
-		}], [{
-			key: 'match',
-			value: function match(something) {
-				return fluentFix.isArray(something);
-			}
-		}]);
-
-		return ArrayGenerator;
-	})(GeneratorBase);
-
-	genFor.Array = ArrayGenerator;
-
-	/* Assign to Generator.For
- ************************************************************/
-
-	generator.For = genFor;
-
-	/* Assign to Generator
- ************************************************************/
-
-	fluentFix.Generator = generator;
-
-	/* Assign to globals 
- ************************************************************/
-
-	globals.FluentFix = (globals.module || {}).exports = fluentFix;
+            // assess any options.
+            if (fluentFix.isObject(number)) {
+                (function () {
+                    var min = number.min || 0x0,
+                        max = number.max || 0xFFFFFFFF;
+
+                    tempNumber = function () {
+                        return cryptoNumberInRange(min, max);
+                    };
+                })();
+            }
+
+            this.number = tempNumber;
+        }
+
+        _createClass(NumberGenerator, [{
+            key: 'generate',
+            value: function generate() {
+                return this.number();
+            }
+        }], [{
+            key: 'match',
+            value: function match(something) {
+                return fluentFix.isNumber(something);
+            }
+        }]);
+
+        return NumberGenerator;
+    })(GeneratorBase);
+
+    genFor.Number = NumberGenerator;
+
+    var StringGenerator = (function (_GeneratorBase3) {
+        _inherits(StringGenerator, _GeneratorBase3);
+
+        function StringGenerator(string) {
+            _classCallCheck(this, StringGenerator);
+
+            _get(Object.getPrototypeOf(StringGenerator.prototype), 'constructor', this).call(this);
+
+            this.defaultString = string;
+        }
+
+        _createClass(StringGenerator, [{
+            key: 'generate',
+            value: function generate() {
+                return fluentFix.cryptoString(typeof this.defaultString === 'undefined' ? cryptoNumber() : this.defaultString.length);
+            }
+        }], [{
+            key: 'match',
+            value: function match(something) {
+                return fluentFix.isString(something);
+            }
+        }]);
+
+        return StringGenerator;
+    })(GeneratorBase);
+
+    genFor.String = StringGenerator;
+
+    var DateGenerator = (function (_GeneratorBase4) {
+        _inherits(DateGenerator, _GeneratorBase4);
+
+        function DateGenerator(date) {
+            var _this = this;
+
+            _classCallCheck(this, DateGenerator);
+
+            _get(Object.getPrototypeOf(DateGenerator.prototype), 'constructor', this).call(this);
+
+            var now = new Date().getTime();
+
+            var tempDate = function tempDate() {
+                return _this.newDateFromTicks(cryptoNumber());
+            };
+
+            if (fluentFix.isDate(date)) {
+                tempDate = function () {
+                    return _this.newDateFromTicks(date.getTime());
+                };
+            }
+
+            if (fluentFix.isNumber(date)) {
+                tempDate = function () {
+                    return _this.newDateFromTicks(date);
+                };
+            }
+
+            // assess any options.
+            if (fluentFix.isObject(date)) {
+                (function () {
+                    var min = date.min || now,
+                        max = date.max || now,
+                        sequential = date.sequential || false,
+                        seed = date.seed || now;
+
+                    _this.lastGeneratedDate = _this.newDateFromTicks(seed);
+
+                    var tempMin = min;
+                    if (fluentFix.isDate(min)) {
+                        tempMin = min.getTime();
+                    }
+
+                    var tempMax = max;
+                    if (fluentFix.isDate(max)) {
+                        tempMax = max.getTime();
+                    }
+
+                    if (sequential) tempDate = function () {
+                        return _this.newDateFromTicks(cryptoNumberInSequence(tempMin, tempMax, _this.lastGeneratedDate.getTime()));
+                    };else tempDate = function () {
+                        return _this.newDateFromTicks(cryptoNumberInRange(tempMin, tempMax));
+                    };
+                })();
+            }
+
+            this.date = tempDate;
+        }
+
+        _createClass(DateGenerator, [{
+            key: 'generate',
+            value: function generate() {
+                return this.lastGeneratedDate = this.date();
+            }
+        }, {
+            key: 'newDateFromTicks',
+
+            // Private methods
+
+            value: function newDateFromTicks(ticks) {
+                var date = new Date();
+                date.setTime(ticks);
+                return date;
+            }
+        }], [{
+            key: 'match',
+            value: function match(something) {
+                return fluentFix.isDate(something);
+            }
+        }]);
+
+        return DateGenerator;
+    })(GeneratorBase);
+
+    genFor.Date = DateGenerator;
+
+    var ArrayGenerator = (function (_GeneratorBase5) {
+        _inherits(ArrayGenerator, _GeneratorBase5);
+
+        function ArrayGenerator(arr) {
+            _classCallCheck(this, ArrayGenerator);
+
+            _get(Object.getPrototypeOf(ArrayGenerator.prototype), 'constructor', this).call(this);
+
+            var tempType = null,
+                tempArray = arr;
+
+            // default array.
+            if (!arr || arr.length < 1) {
+                this.defaultArray = [];
+                return;
+            }
+
+            // assess any options.
+            if (fluentFix.isObject(arr)) {
+                var _length = arr.length || 10,
+                    depth = arr.depth || 1,
+                    _type = arr.type || 0;
+
+                tempType = _type;
+                tempArray = Array.apply(null, { length: _length });
+
+                if (depth > 1) {
+                    tempType = new ArrayGenerator({ length: _length, type: _type, depth: depth - 1 });
+                }
+            }
+
+            this.typeCache = tempArray.map(function (elem) {
+                return coerse(elem || tempType || type);
+            });
+        }
+
+        _createClass(ArrayGenerator, [{
+            key: 'generate',
+            value: function generate() {
+                return this.defaultArray || this.typeCache.map(function (elem) {
+                    return elem();
+                });
+            }
+        }], [{
+            key: 'match',
+            value: function match(something) {
+                return fluentFix.isArray(something);
+            }
+        }]);
+
+        return ArrayGenerator;
+    })(GeneratorBase);
+
+    genFor.Array = ArrayGenerator;
+
+    /* Assign to Generator.For
+    ************************************************************/
+
+    generator.For = genFor;
+
+    /* Assign to Generator
+    ************************************************************/
+
+    fluentFix.Generator = generator;
+
+    /* Assign to globals 
+    ************************************************************/
+
+    globals.FluentFix = (globals.module || {}).exports = fluentFix;
 })(window || global);
 var window, global;
 

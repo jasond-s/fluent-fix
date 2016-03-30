@@ -2,7 +2,7 @@
 
     let fluentFix = globals.FluentFix || {};
 
-	if (!fluentFix.Generator) throw new Error('Default generators not loaded.');
+    if (!fluentFix.Generator) throw new Error('Default generators not loaded.');
 
     let generators = fluentFix.Generator;
 
@@ -10,7 +10,7 @@
     /* Utilities
     ************************************************************/
 
-    function capitalizeFirstLetter(string) {
+    function capitalizeFirstLetter (string) {
         return string.charAt(0).toUpperCase() + string.slice(1);
     }
 
@@ -75,7 +75,7 @@
         return builderFunc
     }
 
-    function fixture(obj) {        
+    function fixture (obj) {        
         return build(new generators.Object(obj));
     }
 

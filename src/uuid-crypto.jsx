@@ -3,22 +3,22 @@
     let crypto = globals.crypto || globals.msCrypto;
 
     /* Regex for checking is string is UUID or empty GUID
-	/*****************************************************/
+    /*****************************************************/
 
     let UUID_REGEX = /[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[89aAbB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}|[0]{8}-[0]{4}-[0]{4}-[0]{4}-[0]{12}/;
 
-    globals.isUuid = function isUuid(suspectString) {
+    globals.isUuid = function isUuid (suspectString) {
         return suspectString.match(UUID_REGEX);
     }
 
     /* Generate a new uuid string using browser crypto or time.
-	/*****************************************************/
+    /*****************************************************/
 
-    function rngCrypto() {
+    function rngCrypto () {
         return crypto.getRandomValues(new Uint32Array(1))[0];
     }
 
-    function rngTime(littleBitOfExtraEntropy) {
+    function rngTime (littleBitOfExtraEntropy) {
         return Math.random() * 0x100000000 >>> ((littleBitOfExtraEntropy || new Date().getTicks() & 0x03) << 3) & 0xff;
     }
 
@@ -26,7 +26,7 @@
 
     globals.randomNumberGenerator = rng;
 
-    function randomNumberGeneratorInRange(min = 0, max = 0xFFFFFFFF) {
+    function randomNumberGeneratorInRange (min = 0, max = 0xFFFFFFFF) {
         // should be number between 0 and 4,294,967,295...
         var number = rng();
 
@@ -39,7 +39,7 @@
     
     globals.randomNumberGeneratorInRange = randomNumberGeneratorInRange;
 
-    function randomNumberGeneratorInSequence(minJump = 0x1, maxJump = 0x8, last = 0) {
+    function randomNumberGeneratorInSequence (minJump = 0x1, maxJump = 0x8, last = 0) {
         return randomNumberGeneratorInRange(last + minJump, last + maxJump);
     }
     
@@ -48,7 +48,7 @@
     /* Uuid object wrapper for validation and 'security'.
     /*****************************************************/
 
-    function generateNewId() {
+    function generateNewId () {
         let i = 0;
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
             let r = rng(i++) % 16 | 0,
@@ -60,15 +60,15 @@
     class Uuid {
 
         static get EMPTY() {
-            return '00000000-0000-0000-0000-000000000000'
+            return new Uuid('00000000-0000-0000-0000-000000000000');
         }
 
         constructor(seed) {
-            if (seed && !isUuid(seed)) {
+            if (seed && !isUuid(seed.toString())) {
                 throw new Error('seed value for uuid must be valid uuid.');
             }
 
-            this.innervalue = seed || generateNewId();
+            this.innervalue = (seed || generateNewId()).toString();
             this.innertime = new Date();
         }
 
@@ -78,6 +78,10 @@
 
         get time() {
             return this.innertime;
+        }
+
+        toString() {
+            return this.value;
         }
     }
 
