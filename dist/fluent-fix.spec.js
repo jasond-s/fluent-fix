@@ -401,13 +401,17 @@ describe('Generators for fixture values', function () {
         describe('simple object', function () {
 
             beforeEach(function () {
-                testClass = new FluentFix.Generator.For.Number(5).generate();
+                testClass = new FluentFix.Generator.For.Number({ 'default': 5 }).generate();
+                testClassSimple = new FluentFix.Generator.For.Number().generate();
                 testClassComplex = new FluentFix.Generator.For.Number({ min: 10, max: 15 }).generate();
             });
 
             it('should return a new number as default if specified', function () {
-                expect(testClass).toEqual(jasmine.any(Number));
                 expect(testClass).toEqual(5);
+            });
+
+            it('should return a new random number as default', function () {
+                expect(testClass).toEqual(jasmine.any(Number));
             });
 
             it('should return a new number in range if options specified', function () {

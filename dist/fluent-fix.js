@@ -471,20 +471,15 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 return cryptoNumber();
             };
 
-            if (fluentFix.isNumber(number)) {
-                tempNumber = function () {
-                    return number;
-                };
-            }
-
             // assess any options.
             if (fluentFix.isObject(number)) {
                 (function () {
-                    var min = number.min || 0x0,
+                    var defaultNumber = number['default'] || null,
+                        min = number.min || 0x0,
                         max = number.max || 0xFFFFFFFF;
 
                     tempNumber = function () {
-                        return cryptoNumberInRange(min, max);
+                        return defaultNumber || cryptoNumberInRange(min, max);
                     };
                 })();
             }
