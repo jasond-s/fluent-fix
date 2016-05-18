@@ -109,16 +109,13 @@
 
             let tempNumber = () => cryptoNumber();
 
-            if (fluentFix.isNumber(number)) {
-                tempNumber = () => number;
-            }
-
             // assess any options.
             if (fluentFix.isObject(number)) {
-                let min = number.min || 0x0,
+                let defaultNumber = number.default || null,
+                    min = number.min || 0x0,
                     max = number.max || 0xFFFFFFFF;
 
-                tempNumber = () => cryptoNumberInRange(min, max);
+                tempNumber = () => defaultNumber || cryptoNumberInRange(min, max);
             }
 
             this.number = tempNumber;
