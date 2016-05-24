@@ -12,17 +12,21 @@
     ************************************************************/
 
     function findGen (something) {       
-        for (let prop in generator.For)
-            if (generator.For.hasOwnProperty(prop))
-                if (generator.For[prop].match(something))
+        for (let prop in generator.For) {
+            if (generator.For.hasOwnProperty(prop)) {
+                if (generator.For[prop].match(something)) {
                     return generator.For[prop];
+                }
+            }
+        }
 
         return generator.Object;
     }
 
     function coerse (something) {
-        if (something instanceof generator.Abstract)
+        if (something instanceof generator.Abstract) {
             return something.generate.bind(something);
+        }
 
         let select = findGen(something);
         if (select) {                        

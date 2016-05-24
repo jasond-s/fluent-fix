@@ -6,19 +6,19 @@
 
   var modules = {};
   var cache = {};
-  var has = ({}).hasOwnProperty;
-
   var aliases = {};
+  var has = ({}).hasOwnProperty;
 
   var endsWith = function(str, suffix) {
     return str.indexOf(suffix, str.length - suffix.length) !== -1;
   };
 
+  var _cmp = 'components/';
   var unalias = function(alias, loaderPath) {
     var start = 0;
     if (loaderPath) {
-      if (loaderPath.indexOf('components/' === 0)) {
-        start = 'components/'.length;
+      if (loaderPath.indexOf(_cmp) === 0) {
+        start = _cmp.length;
       }
       if (loaderPath.indexOf('/', start) > 0) {
         loaderPath = loaderPath.substring(start, loaderPath.indexOf('/', start));
@@ -26,33 +26,32 @@
     }
     var result = aliases[alias + '/index.js'] || aliases[loaderPath + '/deps/' + alias + '/index.js'];
     if (result) {
-      return 'components/' + result.substring(0, result.length - '.js'.length);
+      return _cmp + result.substring(0, result.length - '.js'.length);
     }
     return alias;
   };
 
-  var expand = (function() {
-    var reg = /^\.\.?(\/|$)/;
-    return function(root, name) {
-      var results = [], parts, part;
-      parts = (reg.test(name) ? root + '/' + name : name).split('/');
-      for (var i = 0, length = parts.length; i < length; i++) {
-        part = parts[i];
-        if (part === '..') {
-          results.pop();
-        } else if (part !== '.' && part !== '') {
-          results.push(part);
-        }
+  var _reg = /^\.\.?(\/|$)/;
+  var expand = function(root, name) {
+    var results = [], part;
+    var parts = (_reg.test(name) ? root + '/' + name : name).split('/');
+    for (var i = 0, length = parts.length; i < length; i++) {
+      part = parts[i];
+      if (part === '..') {
+        results.pop();
+      } else if (part !== '.' && part !== '') {
+        results.push(part);
       }
-      return results.join('/');
-    };
-  })();
+    }
+    return results.join('/');
+  };
+
   var dirname = function(path) {
     return path.split('/').slice(0, -1).join('/');
   };
 
   var localRequire = function(path) {
-    return function(name) {
+    return function expanded(name) {
       var absolute = expand(dirname(path), name);
       return globals.require(absolute, path);
     };
@@ -107,6 +106,7 @@
   };
 
   require.brunch = true;
+  require._cache = cache;
   globals.require = require;
 })();
 'use strict';
@@ -173,11 +173,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     /*****************************************************/
 
     function generateNewId() {
-        var i = 0;
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            var r = rng(i++) % 16 | 0,
-                v = c == 'x' ? r : r & 0x3 | 0x8;
-            return v.toString(16);
+        var aBitOfExtraEntropy = 0;
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (character) {
+            var randomNumber = rng(aBitOfExtraEntropy++) % 16 | 0,
+                choice = character == 'x' ? randomNumber : randomNumber & 0x3 | 0x8;
+            return choice.toString(16);
         });
     }
 
@@ -244,7 +244,9 @@ var window, global;
 
         for (var i = 0; i < len; i++) {
             text.push(possible.charAt(Math.floor(cryptoNumber(0, possible.length - 1))));
-        }return text.join('');
+        }
+
+        return text.join('');
     }
 
     fluentFix.cryptoString = cryptoString;
@@ -289,8 +291,12 @@ var window, global;
         var newobj = {};
 
         for (var prop in obj) {
-            if (obj.hasOwnProperty(prop)) fn(prop, obj, newobj);
-        }return newobj;
+            if (obj.hasOwnProperty(prop)) {
+                fn(prop, obj, newobj);
+            }
+        }
+
+        return newobj;
     }
 
     fluentFix.objectIterate = objectIterate;
@@ -310,13 +316,19 @@ var window, global;
     function clone(obj) {
         var copy = undefined;
 
-        if (obj == null || typeof obj !== 'object') return obj;
+        if (obj == null || typeof obj !== 'object') {
+            return obj;
+        }
 
-        if (isDate(obj)) return new Date(obj.getTime());
+        if (isDate(obj)) {
+            return new Date(obj.getTime());
+        }
 
-        if (isArray(obj)) return obj.map(function (elem) {
-            return clone(elem);
-        });
+        if (isArray(obj)) {
+            return obj.map(function (elem) {
+                return clone(elem);
+            });
+        }
 
         return objectIterate(obj, function (prop, oldObj, newObj) {
             newObj[prop] = clone(obj[prop]);
@@ -356,12 +368,20 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
     function findGen(something) {
         for (var prop in generator.For) {
-            if (generator.For.hasOwnProperty(prop)) if (generator.For[prop].match(something)) return generator.For[prop];
-        }return generator.Object;
+            if (generator.For.hasOwnProperty(prop)) {
+                if (generator.For[prop].match(something)) {
+                    return generator.For[prop];
+                }
+            }
+        }
+
+        return generator.Object;
     }
 
     function coerse(something) {
-        if (something instanceof generator.Abstract) return something.generate.bind(something);
+        if (something instanceof generator.Abstract) {
+            return something.generate.bind(something);
+        }
 
         var select = findGen(something);
         if (select) {
@@ -716,7 +736,11 @@ var window, global;
 
             var transform = transforms[name];
 
-            if (transform) return fluentFix.isFunction(transform) ? transform() : transform;else return testObject[name];
+            if (transform) {
+                return fluentFix.isFunction(transform) ? transform() : transform;
+            } else {
+                return testObject[name];
+            }
         });
     }
 
@@ -743,6 +767,7 @@ var window, global;
             };
 
             completeBuilder.persist = function () {
+
                 persistance(completeBuilder.build());
 
                 return completeBuilder;

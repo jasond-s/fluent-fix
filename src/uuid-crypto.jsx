@@ -49,11 +49,11 @@
     /*****************************************************/
 
     function generateNewId () {
-        let i = 0;
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            let r = rng(i++) % 16 | 0,
-                v = c == 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
+        let aBitOfExtraEntropy = 0;
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(character) {
+            let randomNumber = rng(aBitOfExtraEntropy++) % 16 | 0,
+                choice = character == 'x' ? randomNumber : (randomNumber & 0x3 | 0x8);
+            return choice.toString(16);
         });
     }    
 

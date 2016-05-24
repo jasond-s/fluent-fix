@@ -195,7 +195,7 @@ describe('Generators for fixture values', function () {
                 expect(testClass.length).toEqual(10);
 
                 for (var i = 0; i < testClass.length; i++) {
-                    expect(testClass[i]).toEqual(jasmine.any(String));                
+                    expect(testClass[i]).toEqual(jasmine.any(String));
                 };
             });
 
@@ -212,7 +212,7 @@ describe('Generators for fixture values', function () {
 
                         expect(testClassComplex[i][j]).toEqual(jasmine.any(Object));
                         expect(testClassComplex[i][j].value).toEqual(jasmine.any(String));
-                    }                
+                    }
                 };
             });
         });
@@ -277,5 +277,4 @@ describe('Generators for fixture values', function () {
             });
         });
     });
-
 });

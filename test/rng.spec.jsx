@@ -18,7 +18,7 @@ describe('Utilities and RNG', function () {
 
         it('in range should create a number less than max and more than min', function () {
             expect(randomNumberGeneratorInRange(0, 100)).toEqual(jasmine.any(Number));
-        });    
+        });
 
         it('in range should create a number less than max and more than min', function () {
             for (let i = 0; i < 1000; i++ ) {
@@ -33,7 +33,7 @@ describe('Utilities and RNG', function () {
                 expect(number).toBeLessThan(26);
                 expect(number).toBeGreaterThan(19);
             }
-        });    
+        });
 
         it('in sequence should create a number with min and max jumps', function () {
             for (let i = 0; i < 1000; i++ ) {
@@ -55,6 +55,6 @@ describe('Utilities and RNG', function () {
                 expect(number).toBeLessThan(156);
                 expect(number).toBeGreaterThan(7);
             }
-        });    
+        });
     });
 });
