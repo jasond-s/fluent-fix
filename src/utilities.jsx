@@ -13,8 +13,9 @@
             possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
             len = length || 15;
 
-        for (let i = 0; i < len; i++)
+        for (let i = 0; i < len; i++) {
             text.push(possible.charAt(Math.floor(cryptoNumber(0, possible.length - 1))));
+        }
 
         return text.join('');
     }
@@ -60,9 +61,11 @@
     function objectIterate (obj, fn) {
         let newobj = {};
 
-        for (let prop in obj)
-            if (obj.hasOwnProperty(prop)) 
+        for (let prop in obj) {
+            if (obj.hasOwnProperty(prop)) {
                 fn(prop, obj, newobj);
+            }
+        }
 
         return newobj;
     }
@@ -84,14 +87,17 @@
     function clone (obj) {
         let copy;
 
-        if (obj == null || typeof obj !== 'object')
+        if (obj == null || typeof obj !== 'object') {
             return obj;
+        }
 
-        if (isDate(obj))
+        if (isDate(obj)) {
             return new Date(obj.getTime());
+        }
 
-        if (isArray(obj))
+        if (isArray(obj)) {
             return obj.map(function (elem) { return clone(elem) });
+        }
 
         return objectIterate(obj, function (prop, oldObj, newObj) {
             newObj[prop] = clone(obj[prop]);

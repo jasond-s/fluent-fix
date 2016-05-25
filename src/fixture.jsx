@@ -24,10 +24,11 @@
 
             let transform = transforms[name];
 
-            if (transform)
+            if (transform) {
                 return fluentFix.isFunction(transform) ? transform() : transform
-            else
+            } else {
                 return testObject[name];            
+            }
         });
     }
 
@@ -56,8 +57,9 @@
             }
 
             completeBuilder.persist = function () {
-                persistance(completeBuilder.build());
 
+                persistance(completeBuilder.build());
+                
                 return completeBuilder;
             }
 
