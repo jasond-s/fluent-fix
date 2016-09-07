@@ -106,6 +106,31 @@
     /* Default generators
     ************************************************************/
 
+    class BooleanGenerator extends GeneratorBase {
+
+        constructor (bool) {
+            super();
+
+            this.bool = () => cryptoNumber() % 2 == 0;
+
+            if (fluentFix.isObject(bool)) {
+                let defaultBoolean = bool.default || false;
+
+                this.bool = () => defaultBoolean;
+            }
+        }
+
+        generate () {
+            return this.bool();
+        }
+
+        static match (something) {
+            return fluentFix.isBoolean(something);
+        }
+    }    
+
+    genFor.Boolean = BooleanGenerator;
+
     class NumberGenerator extends GeneratorBase {
 
         constructor (number) {

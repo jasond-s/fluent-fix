@@ -22,6 +22,12 @@
 
     fluentFix.cryptoString = cryptoString;
 
+    function isBoolean (bool) {
+        return Object.prototype.toString.call(bool) === '[object Boolean]';
+    }
+
+    fluentFix.isBoolean = isBoolean;
+
     function isNumber (num) {
         return Object.prototype.toString.call(num) === '[object Number]';
     }
