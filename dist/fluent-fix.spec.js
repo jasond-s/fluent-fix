@@ -6,19 +6,19 @@
 
   var modules = {};
   var cache = {};
-  var aliases = {};
   var has = ({}).hasOwnProperty;
+
+  var aliases = {};
 
   var endsWith = function(str, suffix) {
     return str.indexOf(suffix, str.length - suffix.length) !== -1;
   };
 
-  var _cmp = 'components/';
   var unalias = function(alias, loaderPath) {
     var start = 0;
     if (loaderPath) {
-      if (loaderPath.indexOf(_cmp) === 0) {
-        start = _cmp.length;
+      if (loaderPath.indexOf('components/' === 0)) {
+        start = 'components/'.length;
       }
       if (loaderPath.indexOf('/', start) > 0) {
         loaderPath = loaderPath.substring(start, loaderPath.indexOf('/', start));
@@ -26,32 +26,33 @@
     }
     var result = aliases[alias + '/index.js'] || aliases[loaderPath + '/deps/' + alias + '/index.js'];
     if (result) {
-      return _cmp + result.substring(0, result.length - '.js'.length);
+      return 'components/' + result.substring(0, result.length - '.js'.length);
     }
     return alias;
   };
 
-  var _reg = /^\.\.?(\/|$)/;
-  var expand = function(root, name) {
-    var results = [], part;
-    var parts = (_reg.test(name) ? root + '/' + name : name).split('/');
-    for (var i = 0, length = parts.length; i < length; i++) {
-      part = parts[i];
-      if (part === '..') {
-        results.pop();
-      } else if (part !== '.' && part !== '') {
-        results.push(part);
+  var expand = (function() {
+    var reg = /^\.\.?(\/|$)/;
+    return function(root, name) {
+      var results = [], parts, part;
+      parts = (reg.test(name) ? root + '/' + name : name).split('/');
+      for (var i = 0, length = parts.length; i < length; i++) {
+        part = parts[i];
+        if (part === '..') {
+          results.pop();
+        } else if (part !== '.' && part !== '') {
+          results.push(part);
+        }
       }
-    }
-    return results.join('/');
-  };
-
+      return results.join('/');
+    };
+  })();
   var dirname = function(path) {
     return path.split('/').slice(0, -1).join('/');
   };
 
   var localRequire = function(path) {
-    return function expanded(name) {
+    return function(name) {
       var absolute = expand(dirname(path), name);
       return globals.require(absolute, path);
     };
@@ -106,7 +107,6 @@
   };
 
   require.brunch = true;
-  require._cache = cache;
   globals.require = require;
 })();
 "use strict";
@@ -403,7 +403,7 @@ describe('Generators for fixture values', function () {
             beforeEach(function () {
                 testClass = new FluentFix.Generator.For.Number({ 'default': 5 }).generate();
                 testClassSimple = new FluentFix.Generator.For.Number().generate();
-                testClassComplex = new FluentFix.Generator.For.Number({ min: 10, max: 15 }).generate();
+                testClassComplex = new FluentFix.Generator.For.Number({ min: 10, max: 15, sequential: true });
             });
 
             it('should return a new number as default if specified', function () {
@@ -415,9 +415,25 @@ describe('Generators for fixture values', function () {
             });
 
             it('should return a new number in range if options specified', function () {
-                expect(testClassComplex).toEqual(jasmine.any(Number));
-                expect(testClassComplex).toBeLessThan(16);
-                expect(testClassComplex).toBeGreaterThan(9);
+                var testClassComplexNumber = testClassComplex.generate();
+
+                expect(testClassComplexNumber).toEqual(jasmine.any(Number));
+                expect(testClassComplexNumber).toBeLessThan(16);
+                expect(testClassComplexNumber).toBeGreaterThan(9);
+            });
+
+            it('should return a new number in sequence if options specified', function () {
+                var testItem = null,
+                    testNumber = 0;
+
+                for (var i = 0; i < 10; i++) {
+
+                    testNumber = testItem ? testItem : 0;
+                    testItem = testClassComplex.generate();
+
+                    expect(testItem).toEqual(jasmine.any(Number));
+                    expect(testItem).toBeGreaterThan(testNumber);
+                }
             });
         });
     });

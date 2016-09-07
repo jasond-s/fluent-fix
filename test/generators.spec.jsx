@@ -65,7 +65,7 @@ describe('Generators for fixture values', function () {
             beforeEach(function () {
                 testClass = new FluentFix.Generator.For.Number({ default: 5 }).generate();
                 testClassSimple = new FluentFix.Generator.For.Number().generate();
-                testClassComplex = new FluentFix.Generator.For.Number({min: 10, max: 15}).generate();
+                testClassComplex = new FluentFix.Generator.For.Number({min: 10, max: 15, sequential: true});
             });
 
             it('should return a new number as default if specified', function () {
@@ -77,9 +77,25 @@ describe('Generators for fixture values', function () {
             });
 
             it('should return a new number in range if options specified', function () {
-                expect(testClassComplex).toEqual(jasmine.any(Number));
-                expect(testClassComplex).toBeLessThan(16);
-                expect(testClassComplex).toBeGreaterThan(9);
+                let testClassComplexNumber = testClassComplex.generate();
+                
+                expect(testClassComplexNumber).toEqual(jasmine.any(Number));
+                expect(testClassComplexNumber).toBeLessThan(16);
+                expect(testClassComplexNumber).toBeGreaterThan(9);
+            });
+            
+            it('should return a new number in sequence if options specified', function () {
+                let testItem = null,
+                    testNumber = 0;
+
+                for (var i = 0; i < 10; i++) {
+
+                    testNumber = testItem ? testItem : 0;
+                    testItem = testClassComplex.generate();
+
+                    expect(testItem).toEqual(jasmine.any(Number));
+                    expect(testItem).toBeGreaterThan(testNumber);
+                }
             });
         });
     });
