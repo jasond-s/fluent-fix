@@ -251,6 +251,12 @@ var window, global;
 
     fluentFix.cryptoString = cryptoString;
 
+    function isBoolean(bool) {
+        return Object.prototype.toString.call(bool) === '[object Boolean]';
+    }
+
+    fluentFix.isBoolean = isBoolean;
+
     function isNumber(num) {
         return Object.prototype.toString.call(num) === '[object Number]';
     }
@@ -479,11 +485,53 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     /* Default generators
     ************************************************************/
 
-    var NumberGenerator = (function (_GeneratorBase2) {
-        _inherits(NumberGenerator, _GeneratorBase2);
+    var BooleanGenerator = (function (_GeneratorBase2) {
+        _inherits(BooleanGenerator, _GeneratorBase2);
+
+        function BooleanGenerator(bool) {
+            var _this = this;
+
+            _classCallCheck(this, BooleanGenerator);
+
+            _get(Object.getPrototypeOf(BooleanGenerator.prototype), 'constructor', this).call(this);
+
+            this.bool = function () {
+                return cryptoNumber() % 2 == 0;
+            };
+
+            if (fluentFix.isObject(bool)) {
+                (function () {
+                    var defaultBoolean = bool['default'] || false;
+
+                    _this.bool = function () {
+                        return defaultBoolean;
+                    };
+                })();
+            }
+        }
+
+        _createClass(BooleanGenerator, [{
+            key: 'generate',
+            value: function generate() {
+                return this.bool();
+            }
+        }], [{
+            key: 'match',
+            value: function match(something) {
+                return fluentFix.isBoolean(something);
+            }
+        }]);
+
+        return BooleanGenerator;
+    })(GeneratorBase);
+
+    genFor.Boolean = BooleanGenerator;
+
+    var NumberGenerator = (function (_GeneratorBase3) {
+        _inherits(NumberGenerator, _GeneratorBase3);
 
         function NumberGenerator(number) {
-            var _this = this;
+            var _this2 = this;
 
             _classCallCheck(this, NumberGenerator);
 
@@ -501,11 +549,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         max = number.max || 0xFFFFFFFF,
                         sequential = number.sequential || false;
 
-                    _this.lastGeneratedNumber = 0;
+                    _this2.lastGeneratedNumber = 0;
 
                     if (sequential) {
                         tempNumber = function () {
-                            return defaultNumber || cryptoNumberInSequence(min, max, _this.lastGeneratedNumber);
+                            return defaultNumber || cryptoNumberInSequence(min, max, _this2.lastGeneratedNumber);
                         };
                     } else {
                         tempNumber = function () {
@@ -535,8 +583,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
     genFor.Number = NumberGenerator;
 
-    var StringGenerator = (function (_GeneratorBase3) {
-        _inherits(StringGenerator, _GeneratorBase3);
+    var StringGenerator = (function (_GeneratorBase4) {
+        _inherits(StringGenerator, _GeneratorBase4);
 
         function StringGenerator(string) {
             _classCallCheck(this, StringGenerator);
@@ -563,11 +611,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
     genFor.String = StringGenerator;
 
-    var DateGenerator = (function (_GeneratorBase4) {
-        _inherits(DateGenerator, _GeneratorBase4);
+    var DateGenerator = (function (_GeneratorBase5) {
+        _inherits(DateGenerator, _GeneratorBase5);
 
         function DateGenerator(date) {
-            var _this2 = this;
+            var _this3 = this;
 
             _classCallCheck(this, DateGenerator);
 
@@ -576,18 +624,18 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             var now = new Date().getTime();
 
             var tempDate = function tempDate() {
-                return _this2.newDateFromTicks(cryptoNumber());
+                return _this3.newDateFromTicks(cryptoNumber());
             };
 
             if (fluentFix.isDate(date)) {
                 tempDate = function () {
-                    return _this2.newDateFromTicks(date.getTime());
+                    return _this3.newDateFromTicks(date.getTime());
                 };
             }
 
             if (fluentFix.isNumber(date)) {
                 tempDate = function () {
-                    return _this2.newDateFromTicks(date);
+                    return _this3.newDateFromTicks(date);
                 };
             }
 
@@ -599,7 +647,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         sequential = date.sequential || false,
                         seed = date.seed || now;
 
-                    _this2.lastGeneratedDate = _this2.newDateFromTicks(seed);
+                    _this3.lastGeneratedDate = _this3.newDateFromTicks(seed);
 
                     var tempMin = min;
                     if (fluentFix.isDate(min)) {
@@ -613,11 +661,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                     if (sequential) {
                         tempDate = function () {
-                            return _this2.newDateFromTicks(cryptoNumberInSequence(tempMin, tempMax, _this2.lastGeneratedDate.getTime()));
+                            return _this3.newDateFromTicks(cryptoNumberInSequence(tempMin, tempMax, _this3.lastGeneratedDate.getTime()));
                         };
                     } else {
                         tempDate = function () {
-                            return _this2.newDateFromTicks(cryptoNumberInRange(tempMin, tempMax));
+                            return _this3.newDateFromTicks(cryptoNumberInRange(tempMin, tempMax));
                         };
                     }
                 })();
@@ -653,8 +701,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
     genFor.Date = DateGenerator;
 
-    var ArrayGenerator = (function (_GeneratorBase5) {
-        _inherits(ArrayGenerator, _GeneratorBase5);
+    var ArrayGenerator = (function (_GeneratorBase6) {
+        _inherits(ArrayGenerator, _GeneratorBase6);
 
         function ArrayGenerator(arr) {
             _classCallCheck(this, ArrayGenerator);

@@ -58,6 +58,25 @@ describe('Generators for fixture values', function () {
         });
     });
 
+    describe('boolean generator', function () {
+
+        describe('simple object', function () {
+
+            beforeEach(function () {
+                testClass = new FluentFix.Generator.For.Boolean({ default: true }).generate();
+                testClassSimple = new FluentFix.Generator.For.Boolean().generate();
+            });
+
+            it('should return a new number as default if specified', function () {
+                expect(testClass).toEqual(true);
+            });
+
+            it('should return a new random number as default', function () {
+                expect(testClassSimple).toEqual(jasmine.any(Boolean));
+            });
+        });
+    });
+
     describe('number generator', function () {
 
         describe('simple object', function () {
@@ -73,7 +92,7 @@ describe('Generators for fixture values', function () {
             });
 
             it('should return a new random number as default', function () {
-                expect(testClass).toEqual(jasmine.any(Number));
+                expect(testClassSimple).toEqual(jasmine.any(Number));
             });
 
             it('should return a new number in range if options specified', function () {
