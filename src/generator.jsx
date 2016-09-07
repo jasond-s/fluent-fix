@@ -76,16 +76,19 @@
     generator.Object = ObjectGenerator;
 
 
-    /* Custom generators
+    /* Generator globals
     ************************************************************/
 
     let genFor = generator.For || {};
 
 
+    /* Custom generators
+    ************************************************************/
+
     function addGenerator (generator) {
         if (!(new generator() instanceof GeneratorBase)) {
             throw new Error('Generator must be of generator type.');
-        }
+        }       
 
         genFor[generator.name] = generator;
     }
@@ -97,8 +100,7 @@
             throw new Error('Generator must be of generator type.');
         }
 
-        delete genFor[generator.name];
-    }
+        delete genFor[generator.name];    }
 
     generator.removeGenerator = removeGenerator;
 

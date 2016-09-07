@@ -260,10 +260,14 @@ describe('Generators for fixture values', function () {
         };
 
         class Test extends FluentFix.Generator.Abstract {
-            constructor () { super() }
+            constructor () { 
+                super();
+
+                this.name = "TEST_GENERATOR";
+            }            
             
             generate () {
-                return testValue;
+                return "SOME_RANDOM_VALUE";
             }
 
             static match (property) {
@@ -284,15 +288,25 @@ describe('Generators for fixture values', function () {
         it('should call gen when used in fixture', function () {
             let testClass = fixture();
 
-            expect(testClass.something.test).toEqual(testValue.test);
+            expect(testClass.something).toEqual("SOME_RANDOM_VALUE");
         });
 
         it('should remove gen', function () {
             FluentFix.Generator.removeGenerator(Test);
 
+            // The fixture caches all the generators in the structure of the fixture.
+            // So. We need to regenerate the fixture after editing the globals.
+            fixture = FluentFix.fixture({
+                something: {
+                    test: 'TEST_VALUE'
+                }
+            });
+
             let testClass = fixture();
 
-            expect(testClass.something.test).toEqual(jasmine.any(String));
+            console.log(testClass.something);
+
+            expect(testClass.something).toEqual({ test: jasmine.any(String) });
         });
 
         describe('used directly', function () {
@@ -308,7 +322,7 @@ describe('Generators for fixture values', function () {
             it('should call gen when used in fixture', function () {
                 let testClass = directfixture();
 
-                expect(testClass.something.test).toEqual(testValue.test);
+                expect(testClass.something).toEqual("SOME_RANDOM_VALUE");
             });
         });
     });

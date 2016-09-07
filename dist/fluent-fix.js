@@ -457,10 +457,13 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
     generator.Object = ObjectGenerator;
 
-    /* Custom generators
+    /* Generator globals
     ************************************************************/
 
     var genFor = generator.For || {};
+
+    /* Custom generators
+    ************************************************************/
 
     function addGenerator(generator) {
         if (!(new generator() instanceof GeneratorBase)) {
