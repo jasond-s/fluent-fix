@@ -630,6 +630,8 @@ describe('Generators for fixture values', function () {
         it('should remove gen', function () {
             FluentFix.Generator.removeGenerator(Test);
 
+            // The fixture caches all the generators in the structure of the fixture.
+            // So. We need to regenerate the fixture after editing the globals.
             fixture = FluentFix.fixture({
                 something: {
                     test: 'TEST_VALUE'
@@ -640,7 +642,7 @@ describe('Generators for fixture values', function () {
 
             console.log(testClass.something);
 
-            expect(testClass.something).toEqual(jasmine.any(String));
+            expect(testClass.something).toEqual({ test: jasmine.any(String) });
         });
 
         describe('used directly', function () {
