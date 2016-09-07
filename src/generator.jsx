@@ -117,16 +117,23 @@
             if (fluentFix.isObject(number)) {
                 let defaultNumber = number.default || null,
                     min = number.min || 0x0,
-                    max = number.max || 0xFFFFFFFF;
+                    max = number.max || 0xFFFFFFFF,
+                    sequential = number.sequential || false;
 
-                tempNumber = () => defaultNumber || cryptoNumberInRange(min, max);
+                this.lastGeneratedNumber = 0;
+
+                if (sequential) {
+                    tempNumber = () => defaultNumber || cryptoNumberInSequence(min, max, this.lastGeneratedNumber);
+                } else {
+                    tempNumber = () => defaultNumber || cryptoNumberInRange(min, max);
+                }                
             }
 
             this.number = tempNumber;
         }
 
         generate () {
-            return this.number();
+            return this.lastGeneratedNumber = this.number();
         }
 
         static match (something) {
@@ -193,10 +200,11 @@
                     tempMax = max.getTime();
                 }
 
-                if (sequential) 
+                if (sequential) {
                     tempDate = () => this.newDateFromTicks(cryptoNumberInSequence(tempMin, tempMax, this.lastGeneratedDate.getTime()));
-                else 
+                } else {
                     tempDate = () => this.newDateFromTicks(cryptoNumberInRange(tempMin, tempMax));
+                }
             }
 
             this.date = tempDate;            

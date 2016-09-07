@@ -6,19 +6,19 @@
 
   var modules = {};
   var cache = {};
-  var aliases = {};
   var has = ({}).hasOwnProperty;
+
+  var aliases = {};
 
   var endsWith = function(str, suffix) {
     return str.indexOf(suffix, str.length - suffix.length) !== -1;
   };
 
-  var _cmp = 'components/';
   var unalias = function(alias, loaderPath) {
     var start = 0;
     if (loaderPath) {
-      if (loaderPath.indexOf(_cmp) === 0) {
-        start = _cmp.length;
+      if (loaderPath.indexOf('components/' === 0)) {
+        start = 'components/'.length;
       }
       if (loaderPath.indexOf('/', start) > 0) {
         loaderPath = loaderPath.substring(start, loaderPath.indexOf('/', start));
@@ -26,32 +26,33 @@
     }
     var result = aliases[alias + '/index.js'] || aliases[loaderPath + '/deps/' + alias + '/index.js'];
     if (result) {
-      return _cmp + result.substring(0, result.length - '.js'.length);
+      return 'components/' + result.substring(0, result.length - '.js'.length);
     }
     return alias;
   };
 
-  var _reg = /^\.\.?(\/|$)/;
-  var expand = function(root, name) {
-    var results = [], part;
-    var parts = (_reg.test(name) ? root + '/' + name : name).split('/');
-    for (var i = 0, length = parts.length; i < length; i++) {
-      part = parts[i];
-      if (part === '..') {
-        results.pop();
-      } else if (part !== '.' && part !== '') {
-        results.push(part);
+  var expand = (function() {
+    var reg = /^\.\.?(\/|$)/;
+    return function(root, name) {
+      var results = [], parts, part;
+      parts = (reg.test(name) ? root + '/' + name : name).split('/');
+      for (var i = 0, length = parts.length; i < length; i++) {
+        part = parts[i];
+        if (part === '..') {
+          results.pop();
+        } else if (part !== '.' && part !== '') {
+          results.push(part);
+        }
       }
-    }
-    return results.join('/');
-  };
-
+      return results.join('/');
+    };
+  })();
   var dirname = function(path) {
     return path.split('/').slice(0, -1).join('/');
   };
 
   var localRequire = function(path) {
-    return function expanded(name) {
+    return function(name) {
       var absolute = expand(dirname(path), name);
       return globals.require(absolute, path);
     };
@@ -106,7 +107,6 @@
   };
 
   require.brunch = true;
-  require._cache = cache;
   globals.require = require;
 })();
 'use strict';
@@ -483,6 +483,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         _inherits(NumberGenerator, _GeneratorBase2);
 
         function NumberGenerator(number) {
+            var _this = this;
+
             _classCallCheck(this, NumberGenerator);
 
             _get(Object.getPrototypeOf(NumberGenerator.prototype), 'constructor', this).call(this);
@@ -496,11 +498,20 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 (function () {
                     var defaultNumber = number['default'] || null,
                         min = number.min || 0x0,
-                        max = number.max || 0xFFFFFFFF;
+                        max = number.max || 0xFFFFFFFF,
+                        sequential = number.sequential || false;
 
-                    tempNumber = function () {
-                        return defaultNumber || cryptoNumberInRange(min, max);
-                    };
+                    _this.lastGeneratedNumber = 0;
+
+                    if (sequential) {
+                        tempNumber = function () {
+                            return defaultNumber || cryptoNumberInSequence(min, max, _this.lastGeneratedNumber);
+                        };
+                    } else {
+                        tempNumber = function () {
+                            return defaultNumber || cryptoNumberInRange(min, max);
+                        };
+                    }
                 })();
             }
 
@@ -510,7 +521,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         _createClass(NumberGenerator, [{
             key: 'generate',
             value: function generate() {
-                return this.number();
+                return this.lastGeneratedNumber = this.number();
             }
         }], [{
             key: 'match',
@@ -556,7 +567,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         _inherits(DateGenerator, _GeneratorBase4);
 
         function DateGenerator(date) {
-            var _this = this;
+            var _this2 = this;
 
             _classCallCheck(this, DateGenerator);
 
@@ -565,18 +576,18 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             var now = new Date().getTime();
 
             var tempDate = function tempDate() {
-                return _this.newDateFromTicks(cryptoNumber());
+                return _this2.newDateFromTicks(cryptoNumber());
             };
 
             if (fluentFix.isDate(date)) {
                 tempDate = function () {
-                    return _this.newDateFromTicks(date.getTime());
+                    return _this2.newDateFromTicks(date.getTime());
                 };
             }
 
             if (fluentFix.isNumber(date)) {
                 tempDate = function () {
-                    return _this.newDateFromTicks(date);
+                    return _this2.newDateFromTicks(date);
                 };
             }
 
@@ -588,7 +599,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         sequential = date.sequential || false,
                         seed = date.seed || now;
 
-                    _this.lastGeneratedDate = _this.newDateFromTicks(seed);
+                    _this2.lastGeneratedDate = _this2.newDateFromTicks(seed);
 
                     var tempMin = min;
                     if (fluentFix.isDate(min)) {
@@ -600,11 +611,15 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         tempMax = max.getTime();
                     }
 
-                    if (sequential) tempDate = function () {
-                        return _this.newDateFromTicks(cryptoNumberInSequence(tempMin, tempMax, _this.lastGeneratedDate.getTime()));
-                    };else tempDate = function () {
-                        return _this.newDateFromTicks(cryptoNumberInRange(tempMin, tempMax));
-                    };
+                    if (sequential) {
+                        tempDate = function () {
+                            return _this2.newDateFromTicks(cryptoNumberInSequence(tempMin, tempMax, _this2.lastGeneratedDate.getTime()));
+                        };
+                    } else {
+                        tempDate = function () {
+                            return _this2.newDateFromTicks(cryptoNumberInRange(tempMin, tempMax));
+                        };
+                    }
                 })();
             }
 
