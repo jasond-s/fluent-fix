@@ -592,12 +592,14 @@ describe('Generators for fixture values', function () {
                 _classCallCheck(this, Test);
 
                 _get(Object.getPrototypeOf(Test.prototype), 'constructor', this).call(this);
+
+                this.name = "TEST_GENERATOR";
             }
 
             _createClass(Test, [{
                 key: 'generate',
                 value: function generate() {
-                    return testValue;
+                    return "SOME_RANDOM_VALUE";
                 }
             }], [{
                 key: 'match',
@@ -622,15 +624,23 @@ describe('Generators for fixture values', function () {
         it('should call gen when used in fixture', function () {
             var testClass = fixture();
 
-            expect(testClass.something.test).toEqual(testValue.test);
+            expect(testClass.something).toEqual("SOME_RANDOM_VALUE");
         });
 
         it('should remove gen', function () {
             FluentFix.Generator.removeGenerator(Test);
 
+            fixture = FluentFix.fixture({
+                something: {
+                    test: 'TEST_VALUE'
+                }
+            });
+
             var testClass = fixture();
 
-            expect(testClass.something.test).toEqual(jasmine.any(String));
+            console.log(testClass.something);
+
+            expect(testClass.something).toEqual(jasmine.any(String));
         });
 
         describe('used directly', function () {
@@ -646,7 +656,7 @@ describe('Generators for fixture values', function () {
             it('should call gen when used in fixture', function () {
                 var testClass = directfixture();
 
-                expect(testClass.something.test).toEqual(testValue.test);
+                expect(testClass.something).toEqual("SOME_RANDOM_VALUE");
             });
         });
     });

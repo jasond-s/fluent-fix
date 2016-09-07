@@ -457,17 +457,24 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
     generator.Object = ObjectGenerator;
 
-    /* Custom generators
+    /* Generator globals
     ************************************************************/
 
     var genFor = generator.For || {};
+
+    /* Custom generators
+    ************************************************************/
 
     function addGenerator(generator) {
         if (!(new generator() instanceof GeneratorBase)) {
             throw new Error('Generator must be of generator type.');
         }
 
+        console.log('ADD', genFor[generator.name]);
+
         genFor[generator.name] = generator;
+
+        console.log('REMOVE', genFor[generator.name]);
     }
 
     generator.addGenerator = addGenerator;
@@ -477,7 +484,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             throw new Error('Generator must be of generator type.');
         }
 
+        console.log('REMOVE', genFor[generator.name]);
+
         delete genFor[generator.name];
+
+        console.log('REMOVE', genFor[generator.name]);
     }
 
     generator.removeGenerator = removeGenerator;
