@@ -640,8 +640,6 @@ describe('Generators for fixture values', function () {
 
             var testClass = fixture();
 
-            console.log(testClass.something);
-
             expect(testClass.something).toEqual({ test: jasmine.any(String) });
         });
 
