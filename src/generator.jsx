@@ -153,7 +153,7 @@
                     tempNumber = () => defaultNumber || cryptoNumberInSequence(min, max, this.lastGeneratedNumber);
                 } else {
                     tempNumber = () => defaultNumber || cryptoNumberInRange(min, max);
-                }                
+                }
             }
 
             this.number = tempNumber;
@@ -234,7 +234,7 @@
                 }
             }
 
-            this.date = tempDate;            
+            this.date = tempDate;
         }
 
         generate () {
@@ -262,7 +262,7 @@
             super(); 
 
             let tempType = null,
-                tempArray = arr;   
+                tempArray = arr;
 
             // default array.
             if (!arr || arr.length < 1) {
