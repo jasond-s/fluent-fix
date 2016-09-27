@@ -6,19 +6,19 @@
 
   var modules = {};
   var cache = {};
-  var has = ({}).hasOwnProperty;
-
   var aliases = {};
+  var has = ({}).hasOwnProperty;
 
   var endsWith = function(str, suffix) {
     return str.indexOf(suffix, str.length - suffix.length) !== -1;
   };
 
+  var _cmp = 'components/';
   var unalias = function(alias, loaderPath) {
     var start = 0;
     if (loaderPath) {
-      if (loaderPath.indexOf('components/' === 0)) {
-        start = 'components/'.length;
+      if (loaderPath.indexOf(_cmp) === 0) {
+        start = _cmp.length;
       }
       if (loaderPath.indexOf('/', start) > 0) {
         loaderPath = loaderPath.substring(start, loaderPath.indexOf('/', start));
@@ -26,33 +26,32 @@
     }
     var result = aliases[alias + '/index.js'] || aliases[loaderPath + '/deps/' + alias + '/index.js'];
     if (result) {
-      return 'components/' + result.substring(0, result.length - '.js'.length);
+      return _cmp + result.substring(0, result.length - '.js'.length);
     }
     return alias;
   };
 
-  var expand = (function() {
-    var reg = /^\.\.?(\/|$)/;
-    return function(root, name) {
-      var results = [], parts, part;
-      parts = (reg.test(name) ? root + '/' + name : name).split('/');
-      for (var i = 0, length = parts.length; i < length; i++) {
-        part = parts[i];
-        if (part === '..') {
-          results.pop();
-        } else if (part !== '.' && part !== '') {
-          results.push(part);
-        }
+  var _reg = /^\.\.?(\/|$)/;
+  var expand = function(root, name) {
+    var results = [], part;
+    var parts = (_reg.test(name) ? root + '/' + name : name).split('/');
+    for (var i = 0, length = parts.length; i < length; i++) {
+      part = parts[i];
+      if (part === '..') {
+        results.pop();
+      } else if (part !== '.' && part !== '') {
+        results.push(part);
       }
-      return results.join('/');
-    };
-  })();
+    }
+    return results.join('/');
+  };
+
   var dirname = function(path) {
     return path.split('/').slice(0, -1).join('/');
   };
 
   var localRequire = function(path) {
-    return function(name) {
+    return function expanded(name) {
       var absolute = expand(dirname(path), name);
       return globals.require(absolute, path);
     };
@@ -107,6 +106,7 @@
   };
 
   require.brunch = true;
+  require._cache = cache;
   globals.require = require;
 })();
 'use strict';
@@ -594,13 +594,35 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
             _get(Object.getPrototypeOf(StringGenerator.prototype), 'constructor', this).call(this);
 
-            this.defaultString = string;
+            var tempString = function tempString() {
+                return fluentFix.cryptoString(string.length);
+            };
+
+            if (fluentFix.isObject(string)) {
+                (function () {
+                    var max = string.max || 10,
+                        min = string.min || 1,
+                        strDefault = string['default'] || null;
+
+                    if (strDefault === null) {
+                        tempString = function () {
+                            return fluentFix.cryptoString(cryptoNumberInRange(min, max));
+                        };
+                    } else {
+                        tempString = function () {
+                            return strDefault;
+                        };
+                    }
+                })();
+            }
+
+            this.string = tempString;
         }
 
         _createClass(StringGenerator, [{
             key: 'generate',
             value: function generate() {
-                return fluentFix.cryptoString(typeof this.defaultString === 'undefined' ? cryptoNumber() : this.defaultString.length);
+                return this.string();
             }
         }], [{
             key: 'match',
@@ -803,7 +825,16 @@ var window, global;
             var transform = transforms[name];
 
             if (transform) {
-                return fluentFix.isFunction(transform) ? transform() : transform;
+
+                if (transform instanceof generators.Abstract) {
+                    return transform.generate();
+                }
+
+                if (fluentFix.isFunction(transform)) {
+                    return transform(name);
+                }
+
+                return transform;
             } else {
                 return testObject[name];
             }

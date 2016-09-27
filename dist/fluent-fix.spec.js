@@ -6,19 +6,19 @@
 
   var modules = {};
   var cache = {};
-  var has = ({}).hasOwnProperty;
-
   var aliases = {};
+  var has = ({}).hasOwnProperty;
 
   var endsWith = function(str, suffix) {
     return str.indexOf(suffix, str.length - suffix.length) !== -1;
   };
 
+  var _cmp = 'components/';
   var unalias = function(alias, loaderPath) {
     var start = 0;
     if (loaderPath) {
-      if (loaderPath.indexOf('components/' === 0)) {
-        start = 'components/'.length;
+      if (loaderPath.indexOf(_cmp) === 0) {
+        start = _cmp.length;
       }
       if (loaderPath.indexOf('/', start) > 0) {
         loaderPath = loaderPath.substring(start, loaderPath.indexOf('/', start));
@@ -26,33 +26,32 @@
     }
     var result = aliases[alias + '/index.js'] || aliases[loaderPath + '/deps/' + alias + '/index.js'];
     if (result) {
-      return 'components/' + result.substring(0, result.length - '.js'.length);
+      return _cmp + result.substring(0, result.length - '.js'.length);
     }
     return alias;
   };
 
-  var expand = (function() {
-    var reg = /^\.\.?(\/|$)/;
-    return function(root, name) {
-      var results = [], parts, part;
-      parts = (reg.test(name) ? root + '/' + name : name).split('/');
-      for (var i = 0, length = parts.length; i < length; i++) {
-        part = parts[i];
-        if (part === '..') {
-          results.pop();
-        } else if (part !== '.' && part !== '') {
-          results.push(part);
-        }
+  var _reg = /^\.\.?(\/|$)/;
+  var expand = function(root, name) {
+    var results = [], part;
+    var parts = (_reg.test(name) ? root + '/' + name : name).split('/');
+    for (var i = 0, length = parts.length; i < length; i++) {
+      part = parts[i];
+      if (part === '..') {
+        results.pop();
+      } else if (part !== '.' && part !== '') {
+        results.push(part);
       }
-      return results.join('/');
-    };
-  })();
+    }
+    return results.join('/');
+  };
+
   var dirname = function(path) {
     return path.split('/').slice(0, -1).join('/');
   };
 
   var localRequire = function(path) {
-    return function(name) {
+    return function expanded(name) {
       var absolute = expand(dirname(path), name);
       return globals.require(absolute, path);
     };
@@ -107,6 +106,7 @@
   };
 
   require.brunch = true;
+  require._cache = cache;
   globals.require = require;
 })();
 "use strict";
@@ -271,17 +271,25 @@ describe('Fixture builder', function () {
         });
     });
 
-    describe('with a function return in an object', function () {
+    describe('with a function element', function () {
 
-        var functionFixture = null;
+        var functionFixture = null,
+            testClass = null,
+            testName = null;
 
         beforeEach(function () {
             functionFixture = FluentFix.fixture({
-                something: 5,
                 thing: function thing() {
                     return 5;
                 }
             });
+
+            testClass = functionFixture.builder().withThing(function (name) {
+                testName = name;
+                return function () {
+                    return 9001;
+                };
+            }).build();
         });
 
         it('will create a real object', function () {
@@ -289,13 +297,61 @@ describe('Fixture builder', function () {
         });
 
         it('will keep sensible defaults from load', function () {
-            var testClass = functionFixture.builder().withThing(function () {
-                return function () {
-                    return 9001;
+            expect(testClass.thing()).toEqual(9001);
+        });
+
+        it('will keep pass the property name to the function', function () {
+            expect(testName).toEqual("thing");
+        });
+    });
+
+    describe('with a function as lambda element', function () {
+
+        var functionFixture = null,
+            testClass = null;
+
+        beforeEach(function () {
+            functionFixture = FluentFix.fixture({
+                thing: function thing() {
+                    return 5;
+                }
+            });
+
+            testClass = functionFixture.builder().withThing(function () {
+                return function (retVal) {
+                    return retVal;
                 };
             }).build();
+        });
 
-            expect(testClass.thing()).toEqual(9001);
+        it('will create a real object', function () {
+            expect(functionFixture()).toBeTruthy();
+        });
+
+        it('will keep sensible defaults from load', function () {
+            expect(testClass.thing(9001)).toEqual(9001);
+        });
+    });
+
+    describe('with a generator for the generation', function () {
+
+        var functionFixture = null,
+            testClass = null;
+
+        beforeEach(function () {
+            functionFixture = FluentFix.fixture({
+                something: 5
+            });
+
+            testClass = functionFixture.builder().withSomething(new FluentFix.Generator.For.String({ "default": "SOME_TEST" })).build();
+        });
+
+        it('will create a real object', function () {
+            expect(functionFixture()).toBeTruthy();
+        });
+
+        it('will keep sensible defaults from load', function () {
+            expect(testClass.something).toEqual("SOME_TEST");
         });
     });
 
@@ -453,6 +509,35 @@ describe('Generators for fixture values', function () {
                     expect(testItem).toEqual(jasmine.any(Number));
                     expect(testItem).toBeGreaterThan(testNumber);
                 }
+            });
+        });
+    });
+
+    describe('string generator', function () {
+
+        describe('simple object', function () {
+
+            beforeEach(function () {
+                testClass = new FluentFix.Generator.For.String({ 'default': "SOME_TEST" }).generate();
+                testClassSimple = new FluentFix.Generator.For.String("SOME_TEST").generate();
+                testClassComplex = new FluentFix.Generator.For.String({ min: 10, max: 15 });
+            });
+
+            it('should return the given string as default if specified', function () {
+                expect(testClass).toEqual("SOME_TEST");
+            });
+
+            it('should return a new random string of the same length as the example', function () {
+                expect(testClassSimple).toEqual(jasmine.any(String));
+                expect(testClassSimple.length).toEqual("SOME_TEST".length);
+            });
+
+            it('should return a new string in range if options specified', function () {
+                var testClassComplexNumber = testClassComplex.generate();
+
+                expect(testClassComplexNumber).toEqual(jasmine.any(String));
+                expect(testClassComplexNumber.length).toBeLessThan(16);
+                expect(testClassComplexNumber.length).toBeGreaterThan(9);
             });
         });
     });

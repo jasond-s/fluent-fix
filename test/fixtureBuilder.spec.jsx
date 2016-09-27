@@ -171,34 +171,92 @@ describe('Fixture builder', function () {
         });
     });
 
-    describe('with a function return in an object', function () {
+    describe('with a function element', function () {
 
-        var functionFixture = null;
+        var functionFixture = null,
+            testClass = null,
+            testName = null;
 
         beforeEach(function () {
             functionFixture = FluentFix.fixture({ 
-                something: 5,
                 thing: function () {
                     return 5;
                 }
-            });
-        });
+            })
 
-        it('will create a real object', function () {
-            expect(functionFixture()).toBeTruthy();
-        });        
-
-        it('will keep sensible defaults from load', function () {
-            var testClass = functionFixture
+            testClass = functionFixture
                 .builder()
-                .withThing(function () {
+                .withThing(function (name) {
+                    testName = name;
                     return function () {
                         return 9001;
                     }
                 })
                 .build();
+        });
 
+        it('will create a real object', function () {
+            expect(functionFixture()).toBeTruthy();
+        });
+
+        it('will keep sensible defaults from load', function () {
             expect(testClass.thing()).toEqual(9001);
+        });
+
+        it('will keep pass the property name to the function', function () {
+            expect(testName).toEqual("thing");
+        });
+    });
+
+    describe('with a function as lambda element', function () {
+
+        var functionFixture = null,
+            testClass = null;
+
+        beforeEach(function () {
+            functionFixture = FluentFix.fixture({ 
+                thing: function () {
+                    return 5;
+                }
+            })
+
+            testClass = functionFixture
+                .builder()
+                .withThing(() => (retVal) => retVal)
+                .build();
+        });
+
+        it('will create a real object', function () {
+            expect(functionFixture()).toBeTruthy();
+        });
+
+        it('will keep sensible defaults from load', function () {
+            expect(testClass.thing(9001)).toEqual(9001);
+        });
+    });
+
+    describe('with a generator for the generation', function () {
+
+        var functionFixture = null,
+            testClass = null;
+
+        beforeEach(function () {
+            functionFixture = FluentFix.fixture({ 
+                something: 5
+            })
+
+            testClass = functionFixture
+                .builder()
+                .withSomething(new FluentFix.Generator.For.String({ default: "SOME_TEST" }))
+                .build();
+        });
+
+        it('will create a real object', function () {
+            expect(functionFixture()).toBeTruthy();
+        });
+
+        it('will keep sensible defaults from load', function () {
+            expect(testClass.something).toEqual("SOME_TEST");
         });
     });
 
@@ -218,7 +276,7 @@ describe('Fixture builder', function () {
 
         it('will create a real object', function () {
             expect(functionFixture()).toBeTruthy();
-        });        
+        });
 
         it('will keep the types for all the array items', function () {
             var testClass = functionFixture();

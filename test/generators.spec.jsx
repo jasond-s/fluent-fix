@@ -119,6 +119,35 @@ describe('Generators for fixture values', function () {
         });
     });
 
+    describe('string generator', function () {
+
+        describe('simple object', function () {
+
+            beforeEach(function () {
+                testClass = new FluentFix.Generator.For.String({ default: "SOME_TEST" }).generate();
+                testClassSimple = new FluentFix.Generator.For.String("SOME_TEST").generate();
+                testClassComplex = new FluentFix.Generator.For.String({min: 10, max: 15});
+            });
+
+            it('should return the given string as default if specified', function () {
+                expect(testClass).toEqual("SOME_TEST");
+            });
+
+            it('should return a new random string of the same length as the example', function () {
+                expect(testClassSimple).toEqual(jasmine.any(String));
+                expect(testClassSimple.length).toEqual("SOME_TEST".length);
+            });
+
+            it('should return a new string in range if options specified', function () {
+                let testClassComplexNumber = testClassComplex.generate();
+                
+                expect(testClassComplexNumber).toEqual(jasmine.any(String));
+                expect(testClassComplexNumber.length).toBeLessThan(16);
+                expect(testClassComplexNumber.length).toBeGreaterThan(9);
+            });
+        });
+    });
+
     describe('date generator', function () {
 
         describe('simple object', function () {
