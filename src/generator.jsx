@@ -29,7 +29,7 @@
         }
 
         let select = findGen(something);
-        if (select) {                        
+        if (select) {
             let gen = new select(something);
             return gen.generate.bind(gen);
         }
@@ -100,7 +100,8 @@
             throw new Error('Generator must be of generator type.');
         }
 
-        delete genFor[generator.name];    }
+        delete genFor[generator.name];
+    }
 
     generator.removeGenerator = removeGenerator;
 
@@ -175,13 +176,25 @@
         constructor (string) {
             super();
 
-            this.defaultString = string;
+            var tempString = () => fluentFix.cryptoString(string.length);
+
+            if (fluentFix.isObject(string)) {
+                let max = string.max || 10,
+                    min = string.min || 1,
+                    strDefault = string.default || null;
+
+                if (strDefault === null) {
+                    tempString = () => fluentFix.cryptoString(cryptoNumberInRange(min, max))
+                } else {
+                    tempString = () => strDefault;
+                }
+            }
+
+            this.string = tempString;
         }
 
         generate () {
-            return fluentFix.cryptoString(typeof this.defaultString === 'undefined' 
-                ? cryptoNumber() 
-                : this.defaultString.length);
+            return this.string();
         }
 
         static match (something) {

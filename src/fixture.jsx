@@ -2,7 +2,7 @@
 
     let fluentFix = globals.FluentFix || {};
 
-    if (!fluentFix.Generator) throw new Error('Default generators not loaded.');
+    if (!fluentFix.Generator) throw new Error('Default generators are not loaded.');
 
     let generators = fluentFix.Generator;
 
@@ -25,9 +25,18 @@
             let transform = transforms[name];
 
             if (transform) {
-                return fluentFix.isFunction(transform) ? transform() : transform
+                
+                if (transform instanceof generators.Abstract) {
+                    return transform.generate();
+                }
+
+                if (fluentFix.isFunction(transform)) {
+                    return transform(name);
+                }
+
+                return transform
             } else {
-                return testObject[name];            
+                return testObject[name];
             }
         });
     }
