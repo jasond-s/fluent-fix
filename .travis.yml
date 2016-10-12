@@ -1,6 +1,18 @@
 language: node_js
 node_js:
-        - 0.12
+- "6.7"
 before_script:
-        - export DISPLAY=:99.0
-        - sh -e /etc/init.d/xvfb start
+- "npm install -g brunch"
+- export DISPLAY=:99.0
+- sh -e /etc/init.d/xvfb start
+script:
+- "brunch build --production"
+- "npm test"
+deploy:
+  provider: npm
+  email: jason@jasonds.co.uk
+  api_key:
+    secure: VIYlutjZIrOwfl+vDF1SsFVtyDEyhxv9yluXrpFLBKq+M2p8c70tp0M8Y9Fe9VgawPh5tgt39J9NtdhkRvQeQRHbqe18AEvuzwCPgJXlGbFHySijNrjoDyh60NF3BraeLxYrLvGlYlUR65o0Uy8wLZp86KOGz3xPczuYNw9s3YPcAypm20KWNKYGSZi28HTr6WD71uE5kpUa+vHsmrmQb1GRKE9rNyvXMaPj8oulM/5GrjdLVvZmfIYrDb46pE5eKwaCwjN7GHBkt2IuTj5IX5r0OxBYjQLjpRgZnt5ymed2JrUCnZvbsLl+HKN6tmrSRFf/bgbQt0aHMXkbi2F5NtP7UIO/7uF2xLl7oiMYswpfuQ+LvYvSma+54BxCegr/xmCZyzv29ccD9StL0iOwHFPX/wLJGO9+fq2Pu/zN8vXaWLs5Bsx9hhTUBQzjf1Gb50NUOSTK4NqMtxhqdv47ZaAJNC1EqRjfVTIUqWFY+ye8R41Ts+DF06bGv2td/v6bNYSE1qSdExQiU937VkEhKnEGyJqrhKQcdfN63qEKTwEO0crU2pq+M4ycmImgtliCKYZGFbfgB8BAaTJb111YEtKhjgEyxRI42pvIFsC+CrBH/oqLnrGqBDUKSF/3Vl2vNHOzCG/QJVWgtuwBn/dHv33M1BNfdnM80DDsBuVu3QM=
+  on:
+    tags: true
+    branch: master
