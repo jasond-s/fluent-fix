@@ -60,12 +60,14 @@ let fluentTestObj2 = builder.build();
 
 Any values that you haven't setup with a `.withXXXX()` method will still have been set up with the random test data as they were in the simple value.
 
-This means that each test case should have the absolute minimum of setup code. Ace.
+This means that each test case should have the absolute minimum of setup code.
 
 You can also use the fixture to setup much more complex objects than this.
 
 ```javascript
-// Some complicated thing yo want to generate.
+/* 
+    Some complicated thing yo want to generate.
+*/
 let complexObject = {
     something: 5,
     thing: {
@@ -96,9 +98,6 @@ let complexFixture = fixture
     Nothing is evaluated until you call build!
 */
 ```
-
-The library does not currently support functions directly, unless returned as a `.withXXXX(function () { return function () { return 'test value' }})`... but a better approach is coming soon, I hope. 
-
 
 ## <span id="3-generators">3. Generators</span>
 
@@ -141,6 +140,10 @@ let stringGenerator = new FluentFix.Generator.For.String(value);
 Options:
 
 1. `value: String` - This generator needs an example string to work.
+OR
+1. `min: Number` - Specify a minimum random string length.
+2. `max: Number` - Specify a maximum random string length.
+3. `default: String` - Specify a default string value for the generator.
 
 ### Date
 
@@ -226,7 +229,7 @@ YourCustomES5Generator.match = function() {
 
 ```
 
-The base generator that all other derive from in this `Abstract` one. You will need to implement this interface if you wish to create your own custom generators. Once you have done this you will need to add it to the current fixture context.
+The base generator that all others derive from is the `Abstract` one. You will need to implement this interface if you wish to create your own custom generators. Once you have done this you will need to add it to the current fixture context.
 
 ```javascript
 
