@@ -2,7 +2,9 @@
 
     let fluentFix = globals.FluentFix || {};
 
-    if (!fluentFix.Generator) throw new Error('Default generators are not loaded.');
+    if (!fluentFix.Generator) {
+        throw new Error('Default generators are not loaded.');
+    }
 
     let generators = fluentFix.Generator;
 

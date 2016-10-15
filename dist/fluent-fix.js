@@ -111,9 +111,9 @@
 })();
 'use strict';
 
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 (function (globals) {
 
@@ -144,8 +144,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     globals.randomNumberGenerator = rng;
 
     function randomNumberGeneratorInRange() {
-        var min = arguments.length <= 0 || arguments[0] === undefined ? 0 : arguments[0];
-        var max = arguments.length <= 1 || arguments[1] === undefined ? 0xFFFFFFFF : arguments[1];
+        var min = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+        var max = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0xFFFFFFFF;
 
         // should be number between 0 and 4,294,967,295...
         var number = rng();
@@ -160,9 +160,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     globals.randomNumberGeneratorInRange = randomNumberGeneratorInRange;
 
     function randomNumberGeneratorInSequence() {
-        var minJump = arguments.length <= 0 || arguments[0] === undefined ? 0x1 : arguments[0];
-        var maxJump = arguments.length <= 1 || arguments[1] === undefined ? 0x8 : arguments[1];
-        var last = arguments.length <= 2 || arguments[2] === undefined ? 0 : arguments[2];
+        var minJump = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0x1;
+        var maxJump = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0x8;
+        var last = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
 
         return randomNumberGeneratorInRange(last + minJump, last + maxJump);
     }
@@ -181,7 +181,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         });
     }
 
-    var Uuid = (function () {
+    var Uuid = function () {
         _createClass(Uuid, null, [{
             key: 'EMPTY',
             get: function get() {
@@ -218,7 +218,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         }]);
 
         return Uuid;
-    })();
+    }();
 
     globals.Uuid = Uuid;
 
@@ -227,6 +227,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var window, global;
 
 'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 (function (globals) {
 
@@ -320,9 +322,9 @@ var window, global;
     fluentFix.objectMap = objectMap;
 
     function clone(obj) {
-        var copy = undefined;
+        var copy = void 0;
 
-        if (obj == null || typeof obj !== 'object') {
+        if (obj == null || (typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) !== 'object') {
             return obj;
         }
 
@@ -352,13 +354,13 @@ var window, global;
 
 'use strict';
 
-var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 (function (globals) {
 
@@ -403,7 +405,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     /* Abstracts and generator module
     ************************************************************/
 
-    var GeneratorBase = (function () {
+    var GeneratorBase = function () {
         function GeneratorBase() {
             _classCallCheck(this, GeneratorBase);
         }
@@ -421,21 +423,22 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         }]);
 
         return GeneratorBase;
-    })();
+    }();
 
     generator.Abstract = GeneratorBase;
 
-    var ObjectGenerator = (function (_GeneratorBase) {
+    var ObjectGenerator = function (_GeneratorBase) {
         _inherits(ObjectGenerator, _GeneratorBase);
 
         function ObjectGenerator(obj) {
             _classCallCheck(this, ObjectGenerator);
 
-            _get(Object.getPrototypeOf(ObjectGenerator.prototype), 'constructor', this).call(this);
+            var _this = _possibleConstructorReturn(this, (ObjectGenerator.__proto__ || Object.getPrototypeOf(ObjectGenerator)).call(this));
 
-            this.generateCache = fluentFix.objectMap(obj, function (objProp) {
+            _this.generateCache = fluentFix.objectMap(obj, function (objProp) {
                 return fluentFix.Generator.coerse(objProp);
             });
+            return _this;
         }
 
         _createClass(ObjectGenerator, [{
@@ -453,7 +456,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         }]);
 
         return ObjectGenerator;
-    })(GeneratorBase);
+    }(GeneratorBase);
 
     generator.Object = ObjectGenerator;
 
@@ -488,29 +491,28 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     /* Default generators
     ************************************************************/
 
-    var BooleanGenerator = (function (_GeneratorBase2) {
+    var BooleanGenerator = function (_GeneratorBase2) {
         _inherits(BooleanGenerator, _GeneratorBase2);
 
         function BooleanGenerator(bool) {
-            var _this = this;
-
             _classCallCheck(this, BooleanGenerator);
 
-            _get(Object.getPrototypeOf(BooleanGenerator.prototype), 'constructor', this).call(this);
+            var _this2 = _possibleConstructorReturn(this, (BooleanGenerator.__proto__ || Object.getPrototypeOf(BooleanGenerator)).call(this));
 
-            this.bool = function () {
+            _this2.bool = function () {
                 return cryptoNumber() % 2 == 0;
             };
 
             if (fluentFix.isObject(bool)) {
                 (function () {
-                    var defaultBoolean = bool['default'] || false;
+                    var defaultBoolean = bool.default || false;
 
-                    _this.bool = function () {
+                    _this2.bool = function () {
                         return defaultBoolean;
                     };
                 })();
             }
+            return _this2;
         }
 
         _createClass(BooleanGenerator, [{
@@ -526,19 +528,17 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         }]);
 
         return BooleanGenerator;
-    })(GeneratorBase);
+    }(GeneratorBase);
 
     genFor.Boolean = BooleanGenerator;
 
-    var NumberGenerator = (function (_GeneratorBase3) {
+    var NumberGenerator = function (_GeneratorBase3) {
         _inherits(NumberGenerator, _GeneratorBase3);
 
         function NumberGenerator(number) {
-            var _this2 = this;
-
             _classCallCheck(this, NumberGenerator);
 
-            _get(Object.getPrototypeOf(NumberGenerator.prototype), 'constructor', this).call(this);
+            var _this3 = _possibleConstructorReturn(this, (NumberGenerator.__proto__ || Object.getPrototypeOf(NumberGenerator)).call(this));
 
             var tempNumber = function tempNumber() {
                 return cryptoNumber();
@@ -547,26 +547,27 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             // assess any options.
             if (fluentFix.isObject(number)) {
                 (function () {
-                    var defaultNumber = number['default'] || null,
+                    var defaultNumber = number.default || null,
                         min = number.min || 0x0,
                         max = number.max || 0xFFFFFFFF,
                         sequential = number.sequential || false;
 
-                    _this2.lastGeneratedNumber = 0;
+                    _this3.lastGeneratedNumber = 0;
 
                     if (sequential) {
-                        tempNumber = function () {
-                            return defaultNumber || cryptoNumberInSequence(min, max, _this2.lastGeneratedNumber);
+                        tempNumber = function tempNumber() {
+                            return defaultNumber || cryptoNumberInSequence(min, max, _this3.lastGeneratedNumber);
                         };
                     } else {
-                        tempNumber = function () {
+                        tempNumber = function tempNumber() {
                             return defaultNumber || cryptoNumberInRange(min, max);
                         };
                     }
                 })();
             }
 
-            this.number = tempNumber;
+            _this3.number = tempNumber;
+            return _this3;
         }
 
         _createClass(NumberGenerator, [{
@@ -582,17 +583,17 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         }]);
 
         return NumberGenerator;
-    })(GeneratorBase);
+    }(GeneratorBase);
 
     genFor.Number = NumberGenerator;
 
-    var StringGenerator = (function (_GeneratorBase4) {
+    var StringGenerator = function (_GeneratorBase4) {
         _inherits(StringGenerator, _GeneratorBase4);
 
         function StringGenerator(string) {
             _classCallCheck(this, StringGenerator);
 
-            _get(Object.getPrototypeOf(StringGenerator.prototype), 'constructor', this).call(this);
+            var _this4 = _possibleConstructorReturn(this, (StringGenerator.__proto__ || Object.getPrototypeOf(StringGenerator)).call(this));
 
             var tempString = function tempString() {
                 return fluentFix.cryptoString(string.length);
@@ -602,21 +603,22 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                 (function () {
                     var max = string.max || 10,
                         min = string.min || 1,
-                        strDefault = string['default'] || null;
+                        strDefault = string.default || null;
 
                     if (strDefault === null) {
-                        tempString = function () {
+                        tempString = function tempString() {
                             return fluentFix.cryptoString(cryptoNumberInRange(min, max));
                         };
                     } else {
-                        tempString = function () {
+                        tempString = function tempString() {
                             return strDefault;
                         };
                     }
                 })();
             }
 
-            this.string = tempString;
+            _this4.string = tempString;
+            return _this4;
         }
 
         _createClass(StringGenerator, [{
@@ -632,35 +634,33 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         }]);
 
         return StringGenerator;
-    })(GeneratorBase);
+    }(GeneratorBase);
 
     genFor.String = StringGenerator;
 
-    var DateGenerator = (function (_GeneratorBase5) {
+    var DateGenerator = function (_GeneratorBase5) {
         _inherits(DateGenerator, _GeneratorBase5);
 
         function DateGenerator(date) {
-            var _this3 = this;
-
             _classCallCheck(this, DateGenerator);
 
-            _get(Object.getPrototypeOf(DateGenerator.prototype), 'constructor', this).call(this);
+            var _this5 = _possibleConstructorReturn(this, (DateGenerator.__proto__ || Object.getPrototypeOf(DateGenerator)).call(this));
 
             var now = new Date().getTime();
 
             var tempDate = function tempDate() {
-                return _this3.newDateFromTicks(cryptoNumber());
+                return _this5.newDateFromTicks(cryptoNumber());
             };
 
             if (fluentFix.isDate(date)) {
-                tempDate = function () {
-                    return _this3.newDateFromTicks(date.getTime());
+                tempDate = function tempDate() {
+                    return _this5.newDateFromTicks(date.getTime());
                 };
             }
 
             if (fluentFix.isNumber(date)) {
-                tempDate = function () {
-                    return _this3.newDateFromTicks(date);
+                tempDate = function tempDate() {
+                    return _this5.newDateFromTicks(date);
                 };
             }
 
@@ -672,7 +672,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         sequential = date.sequential || false,
                         seed = date.seed || now;
 
-                    _this3.lastGeneratedDate = _this3.newDateFromTicks(seed);
+                    _this5.lastGeneratedDate = _this5.newDateFromTicks(seed);
 
                     var tempMin = min;
                     if (fluentFix.isDate(min)) {
@@ -685,18 +685,19 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     }
 
                     if (sequential) {
-                        tempDate = function () {
-                            return _this3.newDateFromTicks(cryptoNumberInSequence(tempMin, tempMax, _this3.lastGeneratedDate.getTime()));
+                        tempDate = function tempDate() {
+                            return _this5.newDateFromTicks(cryptoNumberInSequence(tempMin, tempMax, _this5.lastGeneratedDate.getTime()));
                         };
                     } else {
-                        tempDate = function () {
-                            return _this3.newDateFromTicks(cryptoNumberInRange(tempMin, tempMax));
+                        tempDate = function tempDate() {
+                            return _this5.newDateFromTicks(cryptoNumberInRange(tempMin, tempMax));
                         };
                     }
                 })();
             }
 
-            this.date = tempDate;
+            _this5.date = tempDate;
+            return _this5;
         }
 
         _createClass(DateGenerator, [{
@@ -706,6 +707,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             }
         }, {
             key: 'newDateFromTicks',
+
 
             // Private methods
 
@@ -722,44 +724,45 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         }]);
 
         return DateGenerator;
-    })(GeneratorBase);
+    }(GeneratorBase);
 
     genFor.Date = DateGenerator;
 
-    var ArrayGenerator = (function (_GeneratorBase6) {
+    var ArrayGenerator = function (_GeneratorBase6) {
         _inherits(ArrayGenerator, _GeneratorBase6);
 
         function ArrayGenerator(arr) {
             _classCallCheck(this, ArrayGenerator);
 
-            _get(Object.getPrototypeOf(ArrayGenerator.prototype), 'constructor', this).call(this);
+            var _this6 = _possibleConstructorReturn(this, (ArrayGenerator.__proto__ || Object.getPrototypeOf(ArrayGenerator)).call(this));
 
             var tempType = null,
                 tempArray = arr;
 
             // default array.
             if (!arr || arr.length < 1) {
-                this.defaultArray = [];
-                return;
+                _this6.defaultArray = [];
+                return _possibleConstructorReturn(_this6);
             }
 
             // assess any options.
             if (fluentFix.isObject(arr)) {
-                var _length = arr.length || 10,
+                var length = arr.length || 10,
                     depth = arr.depth || 1,
                     _type = arr.type || 0;
 
                 tempType = _type;
-                tempArray = Array.apply(null, { length: _length });
+                tempArray = Array.apply(null, { length: length });
 
                 if (depth > 1) {
-                    tempType = new ArrayGenerator({ length: _length, type: _type, depth: depth - 1 });
+                    tempType = new ArrayGenerator({ length: length, type: _type, depth: depth - 1 });
                 }
             }
 
-            this.typeCache = tempArray.map(function (elem) {
+            _this6.typeCache = tempArray.map(function (elem) {
                 return coerse(elem || tempType || type);
             });
+            return _this6;
         }
 
         _createClass(ArrayGenerator, [{
@@ -777,7 +780,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         }]);
 
         return ArrayGenerator;
-    })(GeneratorBase);
+    }(GeneratorBase);
 
     genFor.Array = ArrayGenerator;
 
@@ -804,7 +807,7 @@ var window, global;
 
     var fluentFix = globals.FluentFix || {};
 
-    if (!fluentFix.Generator) throw new Error('Default generators not loaded.');
+    if (!fluentFix.Generator) throw new Error('Default generators are not loaded.');
 
     var generators = fluentFix.Generator;
 
