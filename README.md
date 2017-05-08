@@ -1,5 +1,5 @@
 
-[![fluent-fix](https://travis-ci.org/jasond-s/fluent-fix.svg "Travis Build")](https://travis-ci.org/jasond-s/fluent-fix "fluent-fix") [![npm version](https://badge.fury.io/js/fluent-fix.svg)](https://badge.fury.io/js/fluent-fix)
+[![fluent-fix](https://travis-ci.org/jasond-s/fluent-fix.svg "Travis Build")](https://travis-ci.org/jasond-s/fluent-fix "fluent-fix") [![npm version](https://badge.fury.io/js/fluent-fix.svg)](https://badge.fury.io/js/fluent-fix) [![Known Vulnerabilities](https://snyk.io/test/github/jasond-s/fluent-fix/badge.svg)](https://snyk.io/test/github/jasond-s/fluent-fix)
 
 # fluent-fix
 
