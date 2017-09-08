@@ -289,4 +289,99 @@ describe('Fixture builder', function () {
             expect(testClass.something[2]).toEqual(jasmine.any(String));
         });
     });
+    
+    describe('with a default object', function () {
+
+        let date = new Date('1900/1/1');
+
+        describe('simple', function () {            
+            beforeEach(function () {
+                var builder = FluentFix.fixture({ 
+                    "fluent-fix-default": true,
+                    nmbr: 5,
+                    str: "Hello World",
+                    arr: [ "Good Bye", 5,  date],
+                    dt: date
+                });
+
+                testClass = builder();
+            });
+
+            it('will create a new fixture for an object', function () {
+                expect(testClass).toBeTruthy();
+            });
+
+            it('will set the default value for a number', function () {
+                expect(testClass.nmbr).toEqual(5);
+            });
+
+            it('will set the default value for a string', function () {
+                expect(testClass.str).toEqual("Hello World");
+            });    
+
+            it('will set the default value for an array', function () {
+                expect(testClass.arr).toEqual([ "Good Bye", 5,  date]);
+            });
+
+            it('will set the default value for a date', function () {
+                expect(testClass.dt).toEqual(date);
+            });
+        });
+        
+        describe('nested', function () {            
+            beforeEach(function () {
+                var builder = FluentFix.fixture({ 
+                    nmbr: 5,
+                    str: "Hello World",
+                    arr: [ "Good Bye", 5,  date],
+                    dt: date,
+                    obj: {
+                        "fluent-fix-default": true,
+                        nmbr: 5,                        
+                        str: "Hello World",
+                        arr: [ "Good Bye", 5,  date],
+                        dt: date,
+                    }
+                });
+
+                testClass = builder();
+            });
+
+            it('will create a new fixture for an object', function () {
+                expect(testClass).toBeTruthy();
+            });
+
+            it('will not set the default value for a number', function () {
+                expect(testClass.nmbr).not.toEqual(5);
+            });
+
+            it('will not set the default value for a string', function () {
+                expect(testClass.str).not.toEqual("Hello World");
+            });    
+
+            it('will not set the default value for an array', function () {
+                expect(testClass.arr).not.toEqual([ "Good Bye", 5,  date]);
+            });
+
+            it('will not set the default value for a date, as a date is always set as default without generator args.', function () {
+                expect(testClass.dt).toEqual(date);
+            });
+            
+            it('will set the default value for a nested a number', function () {
+                expect(testClass.obj.nmbr).toEqual(5);
+            });
+
+            it('will set the default value for a nested a string', function () {
+                expect(testClass.obj.str).toEqual("Hello World");
+            });    
+
+            it('will set the default value for a nested an array', function () {
+                expect(testClass.obj.arr).toEqual([ "Good Bye", 5,  date]);
+            });
+
+            it('will set the default value for a nested a date', function () {
+                expect(testClass.obj.dt).toEqual(date);
+            });
+        });
+    });
 });

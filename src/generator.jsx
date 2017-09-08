@@ -7,6 +7,7 @@
     let cryptoNumberInSequence = globals.randomNumberGeneratorInSequence;
     let generator = fluentFix.Generator || {};
 
+    const DEFAULT_PROP_NAME = 'fluent-fix-default';
 
     /* Type coersion and default generators
     ************************************************************/
@@ -23,14 +24,14 @@
         return generator.Object;
     }
 
-    function coerse (something) {
+    function coerse (something, asDefaults) {
         if (something instanceof generator.Abstract) {
             return something.generate.bind(something);
         }
 
         let select = findGen(something);
         if (select) {
-            let gen = new select(something);
+            let gen = new select(asDefaults ? { default : something } : something);
             return gen.generate.bind(gen);
         }
 
@@ -56,9 +57,15 @@
 
         constructor (obj) { 
             super();
+            let asDefaults = false;
 
-            this.generateCache = fluentFix.objectMap(obj, function (objProp) { 
-                return fluentFix.Generator.coerse(objProp);
+            if (obj && obj[DEFAULT_PROP_NAME]) {
+                asDefaults = true;
+                delete obj[DEFAULT_PROP_NAME];
+            }
+
+            this.generateCache = fluentFix.objectMap(obj, function (objProp) {
+                return fluentFix.Generator.coerse(objProp, asDefaults);
             })
         }
 
@@ -147,13 +154,15 @@
                     min = number.min || 0x0,
                     max = number.max || 0xFFFFFFFF,
                     sequential = number.sequential || false;
-
+                
                 this.lastGeneratedNumber = 0;
 
-                if (sequential) {
-                    tempNumber = () => defaultNumber || cryptoNumberInSequence(min, max, this.lastGeneratedNumber);
+                if (defaultNumber !== null){
+                    tempNumber = () => defaultNumber;
+                } else if (sequential) {
+                    tempNumber = () => cryptoNumberInSequence(min, max, this.lastGeneratedNumber);
                 } else {
-                    tempNumber = () => defaultNumber || cryptoNumberInRange(min, max);
+                    tempNumber = () => cryptoNumberInRange(min, max);
                 }
             }
 
@@ -226,7 +235,8 @@
                 let min = date.min || now,
                     max = date.max || now,
                     sequential = date.sequential || false,
-                    seed = date.seed || now;
+                    seed = date.seed || now,
+                    defaultDate = date.default || null;
                     
                 this.lastGeneratedDate = this.newDateFromTicks(seed);
 
@@ -240,7 +250,9 @@
                     tempMax = max.getTime();
                 }
 
-                if (sequential) {
+                if (defaultDate !== null) {
+                    tempDate = () => defaultDate;
+                } else if (sequential) {
                     tempDate = () => this.newDateFromTicks(cryptoNumberInSequence(tempMin, tempMax, this.lastGeneratedDate.getTime()));
                 } else {
                     tempDate = () => this.newDateFromTicks(cryptoNumberInRange(tempMin, tempMax));
@@ -279,7 +291,7 @@
 
             // default array.
             if (!arr || arr.length < 1) {
-                this.defaultArray = [];
+                this.arr = () => [];
                 return;
             }
 
@@ -287,7 +299,13 @@
             if (fluentFix.isObject(arr)) {
                 let length = arr.length || 10,
                     depth = arr.depth || 1,
-                    type = arr.type || 0;
+                    type = arr.type || 0,
+                    defaultArr = arr.default || null;
+
+                if (defaultArr !== null) {
+                    this.arr = () => defaultArr;
+                    return;
+                }                
 
                 tempType = type;
                 tempArray = Array.apply(null, {length: length});
@@ -298,12 +316,14 @@
             }
 
             this.typeCache = tempArray.map((elem) => coerse(elem || tempType || type));
+            
+            this.arr = () => this.typeCache.map(function (elem) {
+                return elem();
+            });
         }
 
         generate () {  
-            return this.defaultArray || this.typeCache.map(function (elem) {
-                return elem();
-            });
+            return this.arr();
         }
 
         static match (something) {
