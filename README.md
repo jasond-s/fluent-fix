@@ -22,6 +22,8 @@ Install the library as a development dependancy.
 
 ## <span id="2-usage">2. Usage</span>
 
+### 2.1 Simple objects
+
 Getting up and running and building test instances is really simple.
 
 ```javascript
@@ -39,6 +41,8 @@ let fixture = FluentFix.fixture(someObject);
 // Use the fixture to create instances of the object with random data.
 let testObject = fixture();
 ```
+
+### 2.2 Using the fluent API
 
 You can use the `fixture` to set-up specific values for your test object, rather than random ones, using the fluent api.
 
@@ -60,9 +64,13 @@ let fluentTestObj2 = builder.build();
 
 Any values that you haven't setup with a `.withXXXX()` method will still have been set up with the random test data as they were in the simple value.
 
-This means that each test case should have the absolute minimum of setup code. Ace.
+This means that each test case should have the absolute minimum of setup code. 
 
-You can also use the fixture to setup much more complex objects than this.
+**Ace.**
+
+### 2.3 Complex objects
+
+You can also use the fixture to setup much more complex objects like this:
 
 ```javascript
 // Some complicated thing yo want to generate.
@@ -80,25 +88,45 @@ let complexObject = {
 };
 
 let fixture = FluentFix.fixture(complexObject);
+```
 
-/* 
-    You can even build fixtures with other fixtures.
-    You can use functions to setup values before calling build.
-*/
+### 2.4 Fixture inception
 
+You can even build fixtures with other fixtures. You can use functions to setup values before calling build.
+
+```javascript
 let complexFixture = fixture
     .builder()
     .withThing(function () { return fixture(); })
     .build();
-
-/* 
-    The evaluation of the final object is lazy.
-    Nothing is evaluated until you call build!
-*/
 ```
 
-The library does not currently support functions directly, unless returned as a `.withXXXX(function () { return function () { return 'test value' }})`... but a better approach is coming soon, I hope. 
+### 2.5 Default values
 
+The evaluation of the final object is lazy. Nothing is evaluated until you call build!
+
+If you would like the object to have fixed values you can use a tag property on the object to mark it.
+
+```javascript
+let defaultObject = {
+    something: 5,
+    thing: {
+        'fluent-fix-default': true
+        something: 'hello'
+    }
+}
+
+let fixture = FluentFix.fixture(defaultObject);
+```
+
+The value of:
+
+```javascript
+fixture().thing.something === 'hello';
+```
+Will always be fixed at the value given to the *fluent-fix* fixture at initialisation. This can be very useful when expecting specific output data in a test.
+
+The library does not currently support functions directly, unless returned as a `.withXXXX(function () { return function () { return 'test value' }})`.
 
 ## <span id="3-generators">3. Generators</span>
 
