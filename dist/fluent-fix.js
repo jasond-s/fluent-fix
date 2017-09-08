@@ -1,40 +1,18 @@
 (function() {
   'use strict';
 
-  var globals = typeof window === 'undefined' ? global : window;
+  var globals = typeof global === 'undefined' ? self : global;
   if (typeof globals.require === 'function') return;
 
   var modules = {};
   var cache = {};
   var aliases = {};
-  var has = ({}).hasOwnProperty;
+  var has = {}.hasOwnProperty;
 
-  var endsWith = function(str, suffix) {
-    return str.indexOf(suffix, str.length - suffix.length) !== -1;
-  };
-
-  var _cmp = 'components/';
-  var unalias = function(alias, loaderPath) {
-    var start = 0;
-    if (loaderPath) {
-      if (loaderPath.indexOf(_cmp) === 0) {
-        start = _cmp.length;
-      }
-      if (loaderPath.indexOf('/', start) > 0) {
-        loaderPath = loaderPath.substring(start, loaderPath.indexOf('/', start));
-      }
-    }
-    var result = aliases[alias + '/index.js'] || aliases[loaderPath + '/deps/' + alias + '/index.js'];
-    if (result) {
-      return _cmp + result.substring(0, result.length - '.js'.length);
-    }
-    return alias;
-  };
-
-  var _reg = /^\.\.?(\/|$)/;
+  var expRe = /^\.\.?(\/|$)/;
   var expand = function(root, name) {
     var results = [], part;
-    var parts = (_reg.test(name) ? root + '/' + name : name).split('/');
+    var parts = (expRe.test(name) ? root + '/' + name : name).split('/');
     for (var i = 0, length = parts.length; i < length; i++) {
       part = parts[i];
       if (part === '..') {
@@ -58,57 +36,117 @@
   };
 
   var initModule = function(name, definition) {
-    var module = {id: name, exports: {}};
+    var hot = hmr && hmr.createHot(name);
+    var module = {id: name, exports: {}, hot: hot};
     cache[name] = module;
     definition(module.exports, localRequire(name), module);
     return module.exports;
   };
 
+  var expandAlias = function(name) {
+    return aliases[name] ? expandAlias(aliases[name]) : name;
+  };
+
+  var _resolve = function(name, dep) {
+    return expandAlias(expand(dirname(name), dep));
+  };
+
   var require = function(name, loaderPath) {
-    var path = expand(name, '.');
     if (loaderPath == null) loaderPath = '/';
-    path = unalias(name, loaderPath);
+    var path = expandAlias(name);
 
     if (has.call(cache, path)) return cache[path].exports;
     if (has.call(modules, path)) return initModule(path, modules[path]);
 
-    var dirIndex = expand(path, './index');
-    if (has.call(cache, dirIndex)) return cache[dirIndex].exports;
-    if (has.call(modules, dirIndex)) return initModule(dirIndex, modules[dirIndex]);
-
-    throw new Error('Cannot find module "' + name + '" from '+ '"' + loaderPath + '"');
+    throw new Error("Cannot find module '" + name + "' from '" + loaderPath + "'");
   };
 
   require.alias = function(from, to) {
     aliases[to] = from;
   };
 
+  var extRe = /\.[^.\/]+$/;
+  var indexRe = /\/index(\.[^\/]+)?$/;
+  var addExtensions = function(bundle) {
+    if (extRe.test(bundle)) {
+      var alias = bundle.replace(extRe, '');
+      if (!has.call(aliases, alias) || aliases[alias].replace(extRe, '') === alias + '/index') {
+        aliases[alias] = bundle;
+      }
+    }
+
+    if (indexRe.test(bundle)) {
+      var iAlias = bundle.replace(indexRe, '');
+      if (!has.call(aliases, iAlias)) {
+        aliases[iAlias] = bundle;
+      }
+    }
+  };
+
   require.register = require.define = function(bundle, fn) {
-    if (typeof bundle === 'object') {
+    if (bundle && typeof bundle === 'object') {
       for (var key in bundle) {
         if (has.call(bundle, key)) {
-          modules[key] = bundle[key];
+          require.register(key, bundle[key]);
         }
       }
     } else {
       modules[bundle] = fn;
+      delete cache[bundle];
+      addExtensions(bundle);
     }
   };
 
   require.list = function() {
-    var result = [];
+    var list = [];
     for (var item in modules) {
       if (has.call(modules, item)) {
-        result.push(item);
+        list.push(item);
       }
     }
-    return result;
+    return list;
   };
 
-  require.brunch = true;
+  var hmr = globals._hmr && new globals._hmr(_resolve, require, modules, cache);
   require._cache = cache;
+  require.hmr = hmr && hmr.wrap;
+  require.brunch = true;
   globals.require = require;
 })();
+
+(function() {
+var global = typeof window === 'undefined' ? this : window;
+var __makeRelativeRequire = function(require, mappings, pref) {
+  var none = {};
+  var tryReq = function(name, pref) {
+    var val;
+    try {
+      val = require(pref + '/node_modules/' + name);
+      return val;
+    } catch (e) {
+      if (e.toString().indexOf('Cannot find module') === -1) {
+        throw e;
+      }
+
+      if (pref.indexOf('node_modules') !== -1) {
+        var s = pref.split('/');
+        var i = s.lastIndexOf('node_modules');
+        var newPref = s.slice(0, i).join('/');
+        return tryReq(name, newPref);
+      }
+    }
+    return none;
+  };
+  return function(name) {
+    if (name in mappings) name = mappings[name];
+    if (!name) return;
+    if (name[0] !== '.' && pref) {
+      var val = tryReq(name, pref);
+      if (val !== none) return val;
+    }
+    return require(name);
+  }
+};
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -369,6 +407,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     var cryptoNumberInSequence = globals.randomNumberGeneratorInSequence;
     var generator = fluentFix.Generator || {};
 
+    var DEFAULT_PROP_NAME = 'fluent-fix-default';
+
     /* Type coersion and default generators
     ************************************************************/
 
@@ -384,14 +424,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         return generator.Object;
     }
 
-    function coerse(something) {
+    function coerse(something, asDefaults) {
         if (something instanceof generator.Abstract) {
             return something.generate.bind(something);
         }
 
         var select = findGen(something);
         if (select) {
-            var gen = new select(something);
+            var gen = new select(asDefaults ? { 'default': something } : something);
             return gen.generate.bind(gen);
         }
 
@@ -432,9 +472,15 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
             _classCallCheck(this, ObjectGenerator);
 
             _get(Object.getPrototypeOf(ObjectGenerator.prototype), 'constructor', this).call(this);
+            var asDefaults = false;
+
+            if (obj && obj[DEFAULT_PROP_NAME]) {
+                asDefaults = true;
+                delete obj[DEFAULT_PROP_NAME];
+            }
 
             this.generateCache = fluentFix.objectMap(obj, function (objProp) {
-                return fluentFix.Generator.coerse(objProp);
+                return fluentFix.Generator.coerse(objProp, asDefaults);
             });
         }
 
@@ -554,13 +600,17 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
                     _this2.lastGeneratedNumber = 0;
 
-                    if (sequential) {
+                    if (defaultNumber !== null) {
                         tempNumber = function () {
-                            return defaultNumber || cryptoNumberInSequence(min, max, _this2.lastGeneratedNumber);
+                            return defaultNumber;
+                        };
+                    } else if (sequential) {
+                        tempNumber = function () {
+                            return cryptoNumberInSequence(min, max, _this2.lastGeneratedNumber);
                         };
                     } else {
                         tempNumber = function () {
-                            return defaultNumber || cryptoNumberInRange(min, max);
+                            return cryptoNumberInRange(min, max);
                         };
                     }
                 })();
@@ -670,7 +720,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                     var min = date.min || now,
                         max = date.max || now,
                         sequential = date.sequential || false,
-                        seed = date.seed || now;
+                        seed = date.seed || now,
+                        defaultDate = date['default'] || null;
 
                     _this3.lastGeneratedDate = _this3.newDateFromTicks(seed);
 
@@ -684,7 +735,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
                         tempMax = max.getTime();
                     }
 
-                    if (sequential) {
+                    if (defaultDate !== null) {
+                        tempDate = function () {
+                            return defaultDate;
+                        };
+                    } else if (sequential) {
                         tempDate = function () {
                             return _this3.newDateFromTicks(cryptoNumberInSequence(tempMin, tempMax, _this3.lastGeneratedDate.getTime()));
                         };
@@ -730,6 +785,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         _inherits(ArrayGenerator, _GeneratorBase6);
 
         function ArrayGenerator(arr) {
+            var _this4 = this;
+
             _classCallCheck(this, ArrayGenerator);
 
             _get(Object.getPrototypeOf(ArrayGenerator.prototype), 'constructor', this).call(this);
@@ -739,35 +796,55 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
             // default array.
             if (!arr || arr.length < 1) {
-                this.defaultArray = [];
+                this.arr = function () {
+                    return [];
+                };
                 return;
             }
 
             // assess any options.
             if (fluentFix.isObject(arr)) {
-                var _length = arr.length || 10,
-                    depth = arr.depth || 1,
-                    _type = arr.type || 0;
+                var _ret5 = (function () {
+                    var length = arr.length || 10,
+                        depth = arr.depth || 1,
+                        type = arr.type || 0,
+                        defaultArr = arr['default'] || null;
 
-                tempType = _type;
-                tempArray = Array.apply(null, { length: _length });
+                    if (defaultArr !== null) {
+                        _this4.arr = function () {
+                            return defaultArr;
+                        };
+                        return {
+                            v: undefined
+                        };
+                    }
 
-                if (depth > 1) {
-                    tempType = new ArrayGenerator({ length: _length, type: _type, depth: depth - 1 });
-                }
+                    tempType = type;
+                    tempArray = Array.apply(null, { length: length });
+
+                    if (depth > 1) {
+                        tempType = new ArrayGenerator({ length: length, type: type, depth: depth - 1 });
+                    }
+                })();
+
+                if (typeof _ret5 === 'object') return _ret5.v;
             }
 
             this.typeCache = tempArray.map(function (elem) {
                 return coerse(elem || tempType || type);
             });
+
+            this.arr = function () {
+                return _this4.typeCache.map(function (elem) {
+                    return elem();
+                });
+            };
         }
 
         _createClass(ArrayGenerator, [{
             key: 'generate',
             value: function generate() {
-                return this.defaultArray || this.typeCache.map(function (elem) {
-                    return elem();
-                });
+                return this.arr();
             }
         }], [{
             key: 'match',
@@ -804,7 +881,7 @@ var window, global;
 
     var fluentFix = globals.FluentFix || {};
 
-    if (!fluentFix.Generator) throw new Error('Default generators not loaded.');
+    if (!fluentFix.Generator) throw new Error('Default generators are not loaded.');
 
     var generators = fluentFix.Generator;
 
@@ -896,4 +973,8 @@ var window, global;
     globals.FluentFix = (globals.module || {}).exports = fluentFix;
 })(window || global);
 var window, global;
+
+require.register("___globals___", function(exports, require, module) {
+  
+});})();require('___globals___');
 

@@ -120,6 +120,7 @@ Options:
 
 ```javascript
 let numberGenerator = new FluentFix.Generator.For.Number({
+        default: undefined,
         min: Number.MIN_VALUE,
         max: Number.MAX_VALUE,
         sequential: false
@@ -128,11 +129,14 @@ let numberGenerator = new FluentFix.Generator.For.Number({
 
 Options:
 
-1. `min: Number` - Specify a minimum for random value.
-2. `max: Number` - Specify a maximum for random value.
-3. `sequential: Boolean` - Specify if you would like the random generation to be sequential.
+1. `default: Number` - Specify a default number.
+2. `min: Number` - Specify a minimum for random value.
+3. `max: Number` - Specify a maximum for random value.
+4. `sequential: Boolean` - Specify if you would like the random generation to be sequential.
 
 ### String
+
+#### Simple
 
 ```javascript
 let stringGenerator = new FluentFix.Generator.For.String(value);
@@ -142,10 +146,27 @@ Options:
 
 1. `value: String` - This generator needs an example string to work.
 
+#### Variable
+
+```javascript
+let stringGenerator = new FluentFix.Generator.For.String({
+    default : undefined,
+    min: undefined,
+    max: undefined,
+});
+```
+
+Options:
+
+1. `default: Date` - Specify a default string.
+1. `min: Date` - Specify a minimum length for random value.
+2. `max: Date` - Specify a maximum length for random value.
+
 ### Date
 
 ```javascript
 let dateGenerator = new FluentFix.Generator.For.Date({
+        default: undefined,
         min: undefined,
         max: undefined,
         sequential: false,
@@ -155,6 +176,7 @@ let dateGenerator = new FluentFix.Generator.For.Date({
 
 Options:
 
+1. `default: Date` - Specify a default date.
 1. `min: Date` - Specify a minimum for random value.
 2. `max: Date` - Specify a maximum for random value.
 3. `sequential: Boolean` - Specify if you would like the random generation to be sequential.
@@ -164,6 +186,7 @@ Options:
 
 ```javascript
 let arrayGenerator = new FluentFix.Generator.For.Array({
+        default: undefined,
         length: 10,
         depth: 1,
         type: 0
@@ -172,6 +195,7 @@ let arrayGenerator = new FluentFix.Generator.For.Array({
 
 Options:
 
+1. `default: Array` - Specify a default array.
 1. `length: Number` - The number of items for the given depth, for instance, depth 1, legth 10 will be a simple array with length 10.
 2. `depth: Number` - The depth of the array, used only if complicated matrices or multidimensional arrays are necessary.
 3. `type: Object|Generator` - Specify an object to be used, will be parsed as if by the object generator, or a generator may be specified.
