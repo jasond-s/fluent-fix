@@ -2,7 +2,7 @@ module.exports = config:
 	modules: wrapper: false
 	minify: yes
 	plugins: 
-		babel: pattern: /\.(es6|jsx|spec.jsx)$/
+		babel: pattern: /\.(es6|js|spec.js)$/
 		uglify: ignored: /fluent-fix.js|fluent-fix.spec.js/
 	paths: 
 		public: 'dist'
@@ -15,7 +15,7 @@ module.exports = config:
 				'fluent-fix.spec.js': /test/
 			order:
 		      before: [ 
-		      	'src/uuid-crypto.jsx',
-		      	'src/utilities.jsx',
-		      	'src/generator.jsx'
+		      	'src/uuid-crypto.js',
+		      	'src/utilities.js',
+		      	'src/generator.js'
 		      ]
