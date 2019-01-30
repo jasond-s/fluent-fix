@@ -126,6 +126,8 @@ fixture().thing.something === 'hello';
 ```
 Will always be fixed at the value given to the *fluent-fix* fixture at initialisation. This can be very useful when expecting specific output data in a test.
 
+#### Enhancements
+
 The library does not currently support functions directly, unless returned as a `.withXXXX(function () { return function () { return 'test value' }})`.
 
 ## <span id="3-generators">3. Generators</span>
@@ -160,7 +162,7 @@ Options:
 1. `default: Number` - Specify a default number.
 2. `min: Number` - Specify a minimum for random value.
 3. `max: Number` - Specify a maximum for random value.
-4. `sequential: Boolean` - Specify if you would like the random generation to be sequential.
+4. `sequential: Boolean` - Specify if you would like the random generation to be pseudo-random and sequential.
 
 ### String
 
@@ -187,8 +189,8 @@ let stringGenerator = new FluentFix.Generator.For.String({
 Options:
 
 1. `default: Date` - Specify a default string.
-1. `min: Date` - Specify a minimum length for random value.
-2. `max: Date` - Specify a maximum length for random value.
+1. `min: Date` - Specify a minimum length for random string value.
+2. `max: Date` - Specify a maximum length for random string value.
 
 ### Date
 
@@ -234,7 +236,9 @@ Options:
 let objectGenerator = new FluentFix.Generator.Object({ });
 ```
 
-The object generator is used internally for the main parsing of objects and other generators. This shouldn't be needed for most use cases but is included here for completeness. All unmatched properties on test fixtures are parsed finally through the object generator. 
+The object generator is used internally for the main parsing of objects and other generators. This shouldn't be needed for most use cases but is included here for completeness. 
+
+All unmatched properties on test fixtures are parsed finally through the object generator. 
 
 
 ## <span id="4-extensionsa">4. Extensions</span>
@@ -292,4 +296,8 @@ FluentFix.Generator.remove(YourCustomES5Generator);
 
 ```
 
-NOTE: The matching algorithm for generators moves from most primitive to least primitive internally. But has no intelligence regarding custom generators. This means that the ordering in which you add the generators is important. The **first** generator that matches the input ptoperty will be assigned for the fixture builder. I would suggest you add the 
+NOTE: The matching algorithm for generators moves from most primitive to least primitive internally. 
+
+But has no intelligence regarding custom generators. This means that the ordering in which you add the generators is important. The **first** generator that matches the input property will be assigned for the fixture builder. 
+
+I would suggest any user of the library keeps a fixed set of generators for any scope of tests that need them to ensure that the tests are easy to reason about.
